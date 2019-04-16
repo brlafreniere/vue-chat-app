@@ -1,14 +1,14 @@
 <template>
-    <div>
+	<div>
 		<div v-for="message in messages">
 			{{ message }}
 		</div>
-    </div>
+	</div>
 </template>
 
 <script>
 export default {
-    data () {
+	data () {
 		return {
 			messages: ['one', 'two']
 		}
