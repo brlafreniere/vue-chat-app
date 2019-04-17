@@ -11,10 +11,10 @@ Vue.use(new VueSocketIO({
 		actionPrefix: 'SOCKET_',
 		mutationPrefix: 'SOCKET_'
 	},
-	options: { path: "/" } //Optional options
+	options: { } //Optional options
 }))
 
-Vue.config.productionTip = false
+// Vue.config.productionTip = false
 
 new Vue({
     render: h => h(App),
