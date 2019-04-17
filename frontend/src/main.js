@@ -11,7 +11,7 @@ Vue.use(new VueSocketIO({
 		actionPrefix: 'SOCKET_',
 		mutationPrefix: 'SOCKET_'
 	},
-	options: { path: "/my-app/" } //Optional options
+	options: { path: "/" } //Optional options
 }))
 
 Vue.config.productionTip = false
