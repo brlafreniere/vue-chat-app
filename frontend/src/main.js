@@ -1,26 +1,25 @@
 import Vue from 'vue'
-import io from 'socket.io-client'
 import VueSocketIO from 'vue-socket.io'
 
 import App from './App.vue'
 import store from './store'
 import router from './router'
 
+const connectionUrl = 'http://lizardgizzards.com:' + process.env.VUE_APP_PORT
+
 Vue.use(new VueSocketIO({
     debug: true,
-    connection: 'http://lizardgizzards.com:4001',
+    connection: connectionUrl,
     vuex: {
         store,
         actionPrefix: 'SOCKET_',
         mutationPrefix: 'SOCKET_'
     },
-    options: { } //Optional options
+    options: { }
 }))
 
-//const socket = io('http://lizardgizzards.com:4001');
-
 new Vue({
-	router,
-	store,
+    router,
+    store,
     render: h => h(App)
 }).$mount('#app')
