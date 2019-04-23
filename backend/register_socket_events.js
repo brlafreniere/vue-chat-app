@@ -11,7 +11,7 @@ module.exports = function (io) {
         socket.on('create_message', (message) => {
             db.one('INSERT INTO messages(text) VALUES ($1) RETURNING id, text', [message])
                 .then(data => {
-                    socket.emit('new_message', data);
+                    io.sockets.emit('new_message', data);
                 })
                 .catch(error => {
                     console.log('error: ', error);
