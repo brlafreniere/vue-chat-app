@@ -20,10 +20,14 @@
                 @keyup.enter="create_message()"
             >
         </div>
+        <button @click="prompt_nickname()">
+            Set Nickname
+        </button>
     </div>
 </template>
 
 <script>
+
 export default {
     data () {
         return {
@@ -47,6 +51,20 @@ export default {
         create_message () {
             this.$socket.emit('create_message', this.message_input)
             this.message_input = ''
+        },
+        prompt_nickname () {
+            this.$dialog
+                .prompt({
+                    title: 'Choose a nickname',
+                    body: 'Enter your desired nickname',
+                    promptHelp: null
+                })
+                .then(dialog => {
+                    this.nickname = dialog.data
+                })
+                .catch(() => {
+                    console.log('Prompt dismissed')
+                })
         }
     }
 }
