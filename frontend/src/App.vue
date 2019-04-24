@@ -6,10 +6,11 @@
 </template>
 
 <script>
+
 import ChatApp from './components/ChatApp.vue'
 
 export default {
-    name: 'app',
+    name: 'App',
     components: {
         ChatApp
     }

@@ -9,6 +9,7 @@ module.exports = {
 			"closeBracket": 0,
 			"alignAttributesVertically": true,
 			"ignores": []
-		}]
+		}],
+        "vue/name-property-casing": ["error", "PascalCase"]
     },
 };
