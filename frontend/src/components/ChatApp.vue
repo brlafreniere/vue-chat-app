@@ -1,32 +1,23 @@
 <template>
-    <div
-        id="chat-app-container"
-        class="container-fluid"
-    >
+    <div id="chat-app-container" class="container-fluid">
         <div id="info-window">
-            Current Nickname: {{ current_nickname }}
-            <button @click="prompt_nickname()">
-                Set Nickname
-            </button>
+            <!-- https://linearicons.com/free#cdn -->
+            <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
+
+            {{ current_nickname }}
         </div>
         <div id="chat-window">
             <div id="messages-box">
-                <div
-                    v-for="message in messages"
-                    :key="message.id"
-                >
+                <div v-for="message in messages" :key="message.id">
                     {{ message.nickname }}: {{ message.text }}
                 </div>
             </div>
             <div id="input-container">
-                <input
-                    id="new-message-input"
-                    v-model="message_input"
-                    type="text"
-                    placeholder="type message here..."
-                    @keyup.enter="create_message()"
-                >
+                <input id="new-message-input" v-model="message_input" type="text" placeholder="type message here..." @keyup.enter="create_message()">
             </div>
+        </div>
+        <div id="users-list">
+
         </div>
     </div>
 </template>
@@ -38,6 +29,7 @@ export default {
     data () {
         return {
             messages: [],
+            users_list: [],
             message_input: '',
             current_nickname: '',
             client_string: ''
@@ -133,6 +125,20 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.lnr {
+    display: inline-block;
+    fill: currentColor;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.05em;
+    margin-right: 10px;
+}
+
+.lnr-pencil {
+    cursor: pointer;
+    color: white;
+}
+
 .container-fluid {
     padding: 0; }
 
@@ -143,8 +149,9 @@ export default {
 
     #info-window {
         color: white;
+        width: 300px;
         background-color: #082038;
-        padding: 50px; }
+        padding: 25px; }
 
     #chat-window {
         display: flex;

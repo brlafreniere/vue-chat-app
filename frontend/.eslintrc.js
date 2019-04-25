@@ -10,6 +10,13 @@ module.exports = {
 			"alignAttributesVertically": true,
 			"ignores": []
 		}],
-        "vue/name-property-casing": ["error", "PascalCase"]
+        "vue/name-property-casing": ["error", "PascalCase"],
+		"vue/max-attributes-per-line": ["error", {
+			"singleline": 5,
+			"multiline": {
+				"max": 5,
+				"allowFirstLine": false
+			}
+		}]
     }
 };
