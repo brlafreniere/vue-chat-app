@@ -9,5 +9,6 @@ CREATE TABLE messages (
     id SERIAL PRIMARY KEY,
     text VARCHAR(255),
     nickname VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
     user_id INTEGER REFERENCES users
 );

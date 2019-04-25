@@ -9,7 +9,7 @@
         <div id="chat-window">
             <div id="messages-box">
                 <div v-for="message in messages" :key="message.id">
-                    {{ message.nickname }}: {{ message.text }}
+                    [{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A") }}] {{ message.nickname }}: {{ message.text }}
                 </div>
             </div>
             <div id="input-container">
@@ -17,7 +17,7 @@
             </div>
         </div>
         <div id="users-list">
-
+            <!-- -->
         </div>
     </div>
 </template>

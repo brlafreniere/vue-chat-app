@@ -11,7 +11,7 @@ module.exports = function (io) {
 
         socket.on('create_message', (payload) => {
             // check if nickname is in use
-            db.one('INSERT INTO messages(text, nickname) VALUES ($1, $2) RETURNING id, text, nickname', [payload.message, payload.nickname])
+            db.one('INSERT INTO messages(text, nickname, created_at) VALUES ($1, $2, NOW()) RETURNING id, text, nickname, created_at', [payload.message, payload.nickname])
                 .then(data => {
                     io.sockets.emit('new_message', data);
                 })
