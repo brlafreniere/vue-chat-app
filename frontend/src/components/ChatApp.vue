@@ -120,7 +120,8 @@ export default {
                     promptHelp: 'This doesn\'t work yet lol'
                 })
                 .then(dialog => {
-                    this.nickname = dialog.data
+                    this.current_nickname = dialog.data
+                    this.register_nickname_with_server(this.current_nickname)
                 })
                 .catch(() => {
                     console.log('Prompt dismissed')
