@@ -11,5 +11,5 @@ module.exports = {
 			"ignores": []
 		}],
         "vue/name-property-casing": ["error", "PascalCase"]
-    },
+    }
 };

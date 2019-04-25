@@ -44,12 +44,9 @@ export default {
         }
     },
     mounted () {
+        this.current_nickname = this.generate_nickname()
         if (this.check_client_string()) {
-            var result = this.get_nickname_from_server()
-            if (result) {
-                this.current_nickname = this.generate_nickname()
-                this.register_nickname_with_server(this.current_nickname)
-            }
+            this.get_nickname_from_server()
         }
     },
     sockets: {
@@ -89,14 +86,12 @@ export default {
             this.$socket.emit('get_nickname', this.client_string, (nickname) => {
                 if (nickname) {
                     this.current_nickname = nickname
-                    return true
                 } else {
-                    return false
+                    this.register_nickname_with_server(this.current_nickname)
                 }
             })
         },
         register_nickname_with_server (nickname) {
-            console.log(nickname)
             var payload = {
                 nickname: nickname,
                 client_string: this.client_string
@@ -108,9 +103,6 @@ export default {
                     // handle error
                 }
             })
-        },
-        get_nickname_from_cookies () {
-            //
         },
         create_message () {
             var payload = {

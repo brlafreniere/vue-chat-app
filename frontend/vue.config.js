@@ -8,5 +8,5 @@ module.exports = {
             errors: true
         }
     },
-    publicPath: "/"
+    publicPath: "/",
 }

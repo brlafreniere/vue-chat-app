@@ -21,8 +21,9 @@ module.exports = function (io) {
         });
 
         socket.on('get_nickname', (client_string, callback) => {
-            redis.hget(client_string, "nickname", (error, reply) => {
+            redis.hget(client_string, 'nickname', (error, reply) => {
                 if (!error) {
+                    console.log(reply);
                     callback(reply);
                 } else {
                     callback(false);
