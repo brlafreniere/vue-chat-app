@@ -1,4 +1,5 @@
 db = require('./db')();
+redis = require('./redis');
 
 module.exports = function (io) {
     io.on('connection', (socket) => {
@@ -8,8 +9,9 @@ module.exports = function (io) {
             socket.emit('load_messages', data);
 	    });
 
-        socket.on('create_message', (message) => {
-            db.one('INSERT INTO messages(text) VALUES ($1) RETURNING id, text', [message])
+        socket.on('create_message', (payload) => {
+            // check if nickname is in use
+            db.one('INSERT INTO messages(text, nickname) VALUES ($1, $2) RETURNING id, text, nickname', [payload.message, payload.nickname])
                 .then(data => {
                     io.sockets.emit('new_message', data);
                 })
@@ -17,5 +19,25 @@ module.exports = function (io) {
                     console.log('error: ', error);
                 });
         });
+
+        socket.on('get_nickname', (client_string, callback) => {
+            redis.hget(client_string, "nickname", (error, reply) => {
+                if (!error) {
+                    callback(reply);
+                } else {
+                    callback(false);
+                }
+            })
+        });
+
+        socket.on('nickname_register', (payload, callback) => {
+            redis.hset(payload.client_string, "nickname", payload.nickname, (error, reply) => {
+                if (!error) {
+                    callback(true);
+                } else {
+                    callback(false);
+                }
+            })
+        })
     });
 }

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueSocketIO from 'vue-socket.io'
 import VuejsDialog from 'vuejs-dialog'
+import VueCookies from 'vue-cookies'
 
 import 'vuejs-dialog/dist/vuejs-dialog.min.css'
 
@@ -9,6 +10,7 @@ import store from './store'
 import router from './router'
 
 Vue.use(VuejsDialog)
+Vue.use(VueCookies)
 
 const connectionUrl = 'http://lizardgizzards.com:' + process.env.VUE_APP_PORT
 
