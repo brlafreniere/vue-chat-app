@@ -1,3 +1,8 @@
+require('dotenv').config();
+
+console.log("Environment: " + process.env.NODE_ENV );
+console.log("Port: " + process.env.PORT);
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -6,8 +11,19 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var adminRouter = require('./routes/admin');
+var authRouter = require('./routes/auth');
 
 var app = express();
+
+var flash = require('connect-flash');
+var bodyParser = require('body-parser');
+
+require('./app-sessions')(app);
+require('./passport-config')(app);
+
+app.use(flash());
+app.use(bodyParser());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -19,6 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Add headers
 app.use(function (req, res, next) {
@@ -42,7 +59,8 @@ app.use(function (req, res, next) {
 
 // app.use('/', indexRouter);
 // app.use('/users', usersRouter);
-
+app.use('/admin', adminRouter);
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -59,5 +77,6 @@ app.use(function(err, req, res, next) {
 	res.status(err.status || 500);
 	res.render('error');
 });
+
 
 module.exports = app;

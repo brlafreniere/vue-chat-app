@@ -1,10 +1,26 @@
 <template>
     <div id="chat-app-container" class="container-fluid">
         <div id="info-window">
-            <!-- https://linearicons.com/free#cdn -->
-            <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
-
-            {{ current_nickname }}
+            <div id="login-logout">
+                <button @click="show_login_prompt = !show_login_prompt">Login</button>
+            </div>
+            <div id="current-nick">
+                <!-- https://linearicons.com/free#cdn -->
+                <span class="lnr-button">
+                    <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
+                </span>
+                {{ current_nickname }}
+            </div>
+            <div>
+                Current Room: {{ current_room.name }}
+            </div>
+            <div id="users-list">
+                <ul>
+                    <li v-for="user in users_list" :key="user">
+                        {{ user }}
+                    </li>
+                </ul>
+            </div>
         </div>
         <div id="chat-window">
             <div id="messages-box">
@@ -16,23 +32,29 @@
                 <input id="new-message-input" v-model="message_input" type="text" placeholder="type message here..." @keyup.enter="create_message()">
             </div>
         </div>
-        <div id="users-list">
-            <!-- -->
-        </div>
+        <Prompt show="show_login_prompt" />
     </div>
 </template>
 
 <script>
 import sha1 from 'sha1'
 
+import Prompt from './Prompt.vue'
+
 export default {
+    components: {
+        Prompt
+    },
     data () {
         return {
             messages: [],
             users_list: [],
             message_input: '',
             current_nickname: '',
-            client_string: ''
+            current_room: {},
+            client_string: '',
+            user_id: 0,
+            show_login_prompt: false
         }
     },
     mounted () {
@@ -40,20 +62,48 @@ export default {
         if (this.check_client_string()) {
             this.get_nickname_from_server()
         }
+        this.get_users_list()
     },
     sockets: {
         connect () {
         },
-        load_messages (messages) {
+        load_messages (messages, test) {
             this.messages = messages
+        },
+        initial_room (room) {
+            this.current_room = room
+            this.join_room(this.current_room.id)
+            this.load_room_messages()
+        },
+        load_users_list (users) {
+            this.users_list = users
         },
         new_message (message) {
             this.messages.push(message)
             var container = this.$el.querySelector('#messages-box')
             container.scrollTop = container.scrollHeight
+        },
+        nickname_registered (user) {
+            this.user = user
         }
     },
     methods: {
+        login () {
+            this.show_login_prompt = true
+        },
+        logout () {
+        },
+        load_room_messages () {
+            this.$socket.emit('load_room_messages', { room_id: this.current_room.id })
+        },
+        join_room (room_id) {
+            this.$socket.emit('join_room', { room_id: room_id, client_string: this.client_string })
+        },
+        get_users_list () {
+            this.$socket.emit('get_users_list', { room_id: this.current_room.id }, (users_list) => {
+                this.users_list = users_list
+            })
+        },
         generate_nickname () {
             // 5 digit number
             var randomNumber = Math.floor(Math.random() * 100000)
@@ -75,9 +125,11 @@ export default {
             }
         },
         get_nickname_from_server () {
-            this.$socket.emit('get_nickname', this.client_string, (nickname) => {
-                if (nickname) {
-                    this.current_nickname = nickname
+            this.$socket.emit('get_nickname', this.client_string, (user) => {
+                if (user.length === 1) {
+                    user = user[0]
+                    this.current_nickname = user.nickname
+                    this.user = user
                 } else {
                     this.register_nickname_with_server(this.current_nickname)
                 }
@@ -88,17 +140,12 @@ export default {
                 nickname: nickname,
                 client_string: this.client_string
             }
-            this.$socket.emit('nickname_register', payload, (success) => {
-                if (success) {
-                    this.current_nickname = nickname
-                } else {
-                    // handle error
-                }
-            })
+            this.$socket.emit('nickname_register', payload)
         },
         create_message () {
             var payload = {
                 nickname: this.current_nickname,
+                room_id: this.current_room.id,
                 message: this.message_input
             }
             this.$socket.emit('create_message', payload)
@@ -124,14 +171,27 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
+@mixin button-base() {
+    background-color: #306ed3;
+    border: 0;
+    border-radius: 3px;
+    color: white;
+    padding: 10px;
+}
+
+.lnr-button {
+    @include button-base;
+    padding: 4px 5px 2px 6px;
+}
+
 .lnr {
     display: inline-block;
     fill: currentColor;
     width: 1em;
     height: 1em;
     vertical-align: -0.05em;
-    margin-right: 10px;
+    // margin-right: 10px;
 }
 
 .lnr-pencil {
@@ -140,38 +200,61 @@ export default {
 }
 
 .container-fluid {
-    padding: 0; }
+    padding: 0;
+}
 
 #chat-app-container {
     height: 100%;
     display: flex;
-    flex-direction: row; }
+    flex-direction: row;
+}
 
-    #info-window {
-        color: white;
-        width: 300px;
-        background-color: #082038;
-        padding: 25px; }
+#info-window {
+    color: white;
+    width: 300px;
+    background-color: #082038;
+    padding: 25px;
+}
 
-    #chat-window {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%; }
+#login-logout {
+    padding: 1em;
+    margin-bottom: 10px;
+}
 
-        #messages-box {
-            flex-grow: 1;
-            background-color: #185B9E;
-            padding: 25px;
-            color: white;
-            overflow-y: scroll; }
+#login-logout button {
+    @include button-base
+}
 
-        #input-container {
-            background-color: #0C2F52;
-            padding: 25px; }
+#current-nick {
+    background-color: #405372;
+    border-radius: 3px;
+    padding: 1em;
+    margin-bottom: 10px;
+}
 
-        #new-message-input {
-            width: 100%;
-            margin-top: auto;
-            margin-bottom: auto; }
+#chat-window {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+#messages-box {
+    flex-grow: 1;
+    background-color: #185B9E;
+    padding: 25px;
+    color: white;
+    overflow-y: scroll;
+}
+
+#input-container {
+    background-color: #0C2F52;
+    padding: 25px;
+}
+
+#new-message-input {
+    width: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+}
 </style>

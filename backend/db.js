@@ -5,8 +5,6 @@ module.exports = function () {
         environment = 'development';
     }
 
-    console.log('environment: ' + environment);
-
     var database = '';
 
     if (environment == 'development') {

@@ -17,6 +17,10 @@ module.exports = {
 				"max": 5,
 				"allowFirstLine": false
 			}
-		}]
+		}],
+        "camelcase": "off",
+        "vue/singleline-html-element-content-newline": "off",
+        "vue/html-self-closing": "off",
+        "vue/prop-name-casing": "off"
     }
 };
