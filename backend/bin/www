@@ -25,6 +25,10 @@ var io = require('socket.io')(server);
 require('../socket-io-event-handlers')(io);
 require('../socket-io-auth')(io);
 
+var sharedSession = require('express-socket.io-session');
+var session = require('../session');
+io.use(sharedSession(session));
+
 /**
  * Listen on provided port, on all network interfaces.
  */

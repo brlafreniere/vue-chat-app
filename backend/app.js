@@ -1,5 +1,9 @@
 require('dotenv').config();
 
+if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = "development";
+}
+
 console.log("Environment: " + process.env.NODE_ENV );
 console.log("Port: " + process.env.PORT);
 
@@ -19,11 +23,13 @@ var app = express();
 var flash = require('connect-flash');
 var bodyParser = require('body-parser');
 
-require('./app-sessions')(app);
 require('./passport-config')(app);
 
+session = require('./session')
+app.use(session);
+
 app.use(flash());
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({extended: true}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

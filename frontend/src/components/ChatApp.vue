@@ -1,50 +1,58 @@
 <template>
     <div id="chat-app-container" class="container-fluid">
         <div id="info-window">
-            <div id="login-logout">
-                <button @click="show_login_prompt = !show_login_prompt">Login</button>
+            <div id="user-panel">
+                <div id="login-logout">
+                    <button @click="show_login_prompt">Login</button>
+                </div>
+                <div id="current-nick">
+                    <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
+                    {{ current_nickname }}
+                    <!-- https://linearicons.com/free#cdn -->
+                    <span class="lnr-button">
+                        <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
+                    </span>
+                    <svg v-show="current_user.registered" class="lnr lnr-warning"><use xlink:href="#lnr-warning"></use></svg>
+                </div>
             </div>
-            <div id="current-nick">
-                <!-- https://linearicons.com/free#cdn -->
-                <span class="lnr-button">
-                    <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
-                </span>
-                {{ current_nickname }}
-            </div>
-            <div>
-                Current Room: {{ current_room.name }}
-            </div>
-            <div id="users-list">
-                <ul>
-                    <li v-for="user in users_list" :key="user">
-                        {{ user }}
-                    </li>
-                </ul>
+            <div id="room-panel">
+                <div id="users-list">
+                    <div>
+                        <span class="heading">ONLINE</span>
+                    </div>
+                    <ul>
+                        <li v-for="user in online_users" :key="user.nickname">
+                            {{ user.nickname }}
+                        </li>
+                    </ul>
+                    <div>
+                        <span class="heading">OFFLINE</span>
+                    </div>
+                    <ul>
+                        <li v-for="user in offline_users" :key="user.nickname">
+                            {{ user.nickname }}
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div id="chat-window">
             <div id="messages-box">
-                <div v-for="message in messages" :key="message.id">
-                    [{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A") }}] {{ message.nickname }}: {{ message.text }}
+                <div v-for="message in messages" :key="message.id" class="message">
+                    {{ message.nickname }}: {{ message.text }} <span class="message-timestamp">{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A (MMM D, YYYY)") }}</span>
                 </div>
             </div>
             <div id="input-container">
                 <input id="new-message-input" v-model="message_input" type="text" placeholder="type message here..." @keyup.enter="create_message()">
             </div>
         </div>
-        <Prompt show="show_login_prompt" />
     </div>
 </template>
 
 <script>
 import sha1 from 'sha1'
 
-import Prompt from './Prompt.vue'
-
 export default {
-    components: {
-        Prompt
-    },
     data () {
         return {
             messages: [],
@@ -54,7 +62,19 @@ export default {
             current_room: {},
             client_string: '',
             user_id: 0,
-            show_login_prompt: false
+            current_user: {}
+        }
+    },
+    computed: {
+        online_users: function () {
+            return this.users_list.filter((user) => {
+                return user.online_status
+            })
+        },
+        offline_users: function () {
+            return this.users_list.filter((user) => {
+                return !user.online_status
+            })
         }
     },
     mounted () {
@@ -62,7 +82,12 @@ export default {
         if (this.check_client_string()) {
             this.get_nickname_from_server()
         }
-        this.get_users_list()
+    },
+    updated: function () {
+        this.$nextTick(function () {
+            var container = this.$el.querySelector('#messages-box')
+            container.scrollTop = container.scrollHeight
+        })
     },
     sockets: {
         connect () {
@@ -74,11 +99,13 @@ export default {
             this.current_room = room
             this.join_room(this.current_room.id)
             this.load_room_messages()
+            this.get_users_list()
         },
         load_users_list (users) {
             this.users_list = users
         },
         new_message (message) {
+            console.log(message)
             this.messages.push(message)
             var container = this.$el.querySelector('#messages-box')
             container.scrollTop = container.scrollHeight
@@ -88,8 +115,8 @@ export default {
         }
     },
     methods: {
-        login () {
-            this.show_login_prompt = true
+        show_login_prompt () {
+            this.$store.commit('open_login_prompt')
         },
         logout () {
         },
@@ -97,7 +124,8 @@ export default {
             this.$socket.emit('load_room_messages', { room_id: this.current_room.id })
         },
         join_room (room_id) {
-            this.$socket.emit('join_room', { room_id: room_id, client_string: this.client_string })
+            this.$socket.emit('join_room', { room_id: room_id, client_string: this.client_string }, (success) => {
+            })
         },
         get_users_list () {
             this.$socket.emit('get_users_list', { room_id: this.current_room.id }, (users_list) => {
@@ -126,8 +154,7 @@ export default {
         },
         get_nickname_from_server () {
             this.$socket.emit('get_nickname', this.client_string, (user) => {
-                if (user.length === 1) {
-                    user = user[0]
+                if (user) {
                     this.current_nickname = user.nickname
                     this.user = user
                 } else {
@@ -172,6 +199,21 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+$messages-window-color: #b5e5d4;
+$messages-window-text-color: black;
+
+$info-window-color: #333333;
+$user-panel-color: #349b52;
+$current-nick-color: #4f4f4f;
+$input-container-color: $current-nick-color;
+$message-timestamp-color: black;
+
 @mixin button-base() {
     background-color: #306ed3;
     border: 0;
@@ -212,11 +254,19 @@ export default {
 #info-window {
     color: white;
     width: 300px;
-    background-color: #082038;
-    padding: 25px;
+    background-color: $info-window-color;
+}
+
+#user-panel {
+    background-color: $user-panel-color;
+}
+
+#room-panel {
+
 }
 
 #login-logout {
+    display: none;
     padding: 1em;
     margin-bottom: 10px;
 }
@@ -226,10 +276,9 @@ export default {
 }
 
 #current-nick {
-    background-color: #405372;
-    border-radius: 3px;
+    text-align: center;
+    background-color: $current-nick-color;
     padding: 1em;
-    margin-bottom: 10px;
 }
 
 #chat-window {
@@ -241,14 +290,14 @@ export default {
 
 #messages-box {
     flex-grow: 1;
-    background-color: #185B9E;
+    background-color: $messages-window-color;
     padding: 25px;
-    color: white;
+    color: $messages-window-text-color;
     overflow-y: scroll;
 }
 
 #input-container {
-    background-color: #0C2F52;
+    background-color: $input-container-color;
     padding: 25px;
 }
 
@@ -256,5 +305,48 @@ export default {
     width: 100%;
     margin-top: auto;
     margin-bottom: auto;
+}
+
+.label {
+    flex-grow: 0;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    background-color: #253f68;
+    padding: 5px;
+    width: 50%;
+}
+
+.label-datum {
+    flex-grow: 1;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background-color: #617ba3;
+    padding: 5px;
+}
+
+#users-list ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-left: 1em;
+}
+
+#users-list > div {
+    padding: 1em;
+    text-align: center;
+}
+
+.heading {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.message-timestamp {
+    visibility: hidden;
+    font-size: 0.8em;
+    color: $message-timestamp-color;
+}
+
+.message:hover > .message-timestamp {
+    visibility: visible;
 }
 </style>

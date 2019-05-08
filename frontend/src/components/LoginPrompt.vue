@@ -1,6 +1,6 @@
 <template>
-    <div v-show="show_prompt" id="prompt-component">
-        <div id="prompt-overlay">
+    <div v-show="show_login_prompt" id="prompt-component">
+        <div id="prompt-overlay" @click="close_prompt()">
         </div>
         <div id="prompt-box">
             <div>
@@ -10,9 +10,9 @@
             <div>
                 Password:
             </div>
-            <input v-model="password" type="text" name="password" />
+            <input v-model="password" type="password" name="password" />
             <div>
-                <button>Login</button>
+                <button @click="login()">Login</button>
             </div>
         </div>
     </div>
@@ -20,13 +20,21 @@
 
 <script>
 export default {
-    props: {
-        show_prompt: Boolean
-    },
     data () {
         return {
             username: '',
             password: ''
+        }
+    },
+    computed: {
+        show_login_prompt () { return this.$store.state.show_login_prompt }
+    },
+    methods: {
+        close_prompt () {
+            this.$store.commit('close_login_prompt')
+        },
+        login () {
+            this.$emit('login', this.username, this.password)
         }
     }
 }
@@ -34,12 +42,13 @@ export default {
 
 <style lang="scss" scoped>
 #prompt-component {
-    display: none;
 }
 
 #prompt-overlay {
     background-color: black;
-    opacity: 0.7;
+    opacity: 0.8;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     position: absolute;

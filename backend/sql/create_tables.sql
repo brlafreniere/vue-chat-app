@@ -5,6 +5,7 @@ CREATE TABLE users (
     client_string VARCHAR(60) UNIQUE,
     email_address VARCHAR(255),
     registered BOOLEAN NOT NULL DEFAULT FALSE,
+    online_status BOOLEAN NOT NULL DEFAULT FALSE,
     password VARCHAR(60)
 );
 
@@ -17,7 +18,7 @@ CREATE TABLE rooms (
 CREATE TABLE room_users (
     room_id INTEGER REFERENCES rooms NOT NULL,
     user_id INTEGER REFERENCES users NOT NULL,
-    PRIMARY KEY(room_id, user_id)
+    UNIQUE(room_id, user_id)
 );
 
 CREATE TABLE messages (

@@ -1,26 +1,31 @@
 
 <template>
     <div id="app">
-        <ChatApp @login="login()" @logout="logout()" />
+        <ChatApp />
+        <LoginPrompt @login="login" />
     </div>
 </template>
 
 <script>
 import ChatApp from './components/ChatApp.vue'
+import LoginPrompt from './components/LoginPrompt.vue'
 
 export default {
     name: 'App',
     components: {
-        ChatApp
+        ChatApp,
+        LoginPrompt
     },
     methods: {
-        login: (username, password) => {
-            this.$auth.login({ username: username, password: password }).then(() => {
-                // Execute application logic after successful login
-            })
+        login (username, password) {
+            this.$auth.login({ username: username, password: password })
+                .then(() => {
+                    this.$store.commit('close_login_prompt')
+                }).catch(error => {
+                    console.log(error)
+                })
         },
-
-        register: (username, password) => {
+        register (username, password) {
             this.$auth.register({ username: username, password: password }).then(() => {
                 // Execute application logic after successful registration
             })

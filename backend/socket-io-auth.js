@@ -6,7 +6,7 @@ var cookie_parser = require('cookie-parser');
 module.exports = function (io) {
     io.use(passport_socket_io.authorize({
         cookieParser: cookie_parser,       // the same middleware you registrer in express
-        key:          'vue-chat-app.sid',       // the name of the cookie where express/connect stores its session_id
+        key:          'connect.sid',       // the name of the cookie where express/connect stores its session_id
         secret:       process.env.SESSION_SECRET_KEY,    // the session_secret to parse the cookie
         store:        new RedisStore(),        // we NEED to use a sessionstore. no memorystore please
         success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
