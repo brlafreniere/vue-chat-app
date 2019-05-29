@@ -5,7 +5,7 @@ var db = require('./lib/db');
 module.exports = function (app) {
 	passport.use(new LocalStrategy(
 		function(username, password, done) {
-			db.one("SELECT * FROM users WHERE (nickname = $1 OR email_address = $1) AND password = $2;", [username, password])
+			db.query("SELECT * FROM users WHERE (nickname = $1 OR email_address = $1) AND password = $2;", [username, password])
 				.then(user => {
 					return done(null, user);
 				})

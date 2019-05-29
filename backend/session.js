@@ -3,7 +3,7 @@ var RedisStore = require('connect-redis')(ExpressSession);
 
 var session = ExpressSession({
     resave: true,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: new RedisStore(),
     secret: process.env.SESSION_SECRET_KEY
 });

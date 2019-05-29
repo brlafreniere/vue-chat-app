@@ -11,7 +11,7 @@ function set_user_status(client_token, status) {
 // currently only sends the updated list to one client
 async function send_users_list(socket, io) {
     var room_id = socket.handshake.session.current_room.id;
-    var users_list = User.list(room_id);
+    var users_list = await User.list(room_id);
     io.sockets.emit('refresh_users_list', users_list);
 }
 
@@ -20,14 +20,13 @@ module.exports = function (io) {
         console.log(" ** connecting ** ");
         socket.on('disconnect', async () => {
             console.log(" ** disconnecting ** ");
-            // no session info on disconnect...
-            var client_token = socket.handshake.session.client_token;
 
-            // need to wait until this finishes before sending user list
-            await set_user_status(client_token, false);
-            
-            // at this point the client needs to become aware of the change in users list
+            await User.set_online_status(socket.handshake.session.current_user.id, false);
             send_users_list(socket, io);
+        });
+
+        socket.on('reconnect_attempt', () => {
+            console.log('reconnect');
         });
 
         // set client token and current_user object
@@ -41,32 +40,22 @@ module.exports = function (io) {
         });
 
         socket.on('get_current_user', async (next) => {
-            try {
-                var client_token = socket.handshake.session.client_token;
-                current_user = await User.get(client_token);
-                next(current_user);
-            } catch (e) {
-                console.trace(e.stack);
-            }
+            var client_token = socket.handshake.session.client_token;
+            current_user = await User.get(client_token);
+            next(current_user);
         });
 
         socket.on('create_user', async (nickname, next) => {
-            try {
-                var client_token = socket.handshake.session.client_token;
-                var default_room = await Room.get_default();
-                await User.insert(client_token, nickname, default_room.id);
-                var current_user = await User.get(client_token);
-                next(current_user);
-            } catch (e) {
-                console.trace(e.stack);
-            }
+            var client_token = socket.handshake.session.client_token;
+            var default_room = await Room.get_default();
+            await User.insert(client_token, nickname, default_room.id);
+            var current_user = await User.get(client_token);
+            next(current_user);
         });
 
         socket.on('set_online_status', async () => {
-            var client_token = socket.handshake.session.client_token;
-            console.log("Setting user's online status to true (client_token: " + client_token + ")");
-
-            await set_user_status(client_token, true);
+            var current_user = socket.handshake.session.current_user;
+            await User.set_online_status(current_user.id, true);
             send_users_list(socket, io);
         });
 
@@ -92,25 +81,6 @@ module.exports = function (io) {
         socket.on('create_message', async (payload) => {
             var message = await Message.create(payload);
             io.sockets.emit('new_message', message);
-        });
-
-        socket.on('nickname_register', async (payload) => {
-            var { nickname, client_string } = payload;
-            try {
-                var result = await db.query("SELECT * FROM users WHERE client_string = $1", [client_string]);
-                user = result.rows[0];
-                if (!user) {
-                    var query_str = "INSERT INTO users (nickname, client_string, created_at) VALUES ($1, $2, NOW()) RETURNING *;"
-                    var result = await db.query(query_str, [nickname, client_string])
-                    user = result.rows[0];
-                    socket.emit('nickname_registered', user);
-                } else {
-                    var result = await db.query("UPDATE users SET nickname = $1;", [payload.nickname]);
-                    socket.emit('nickname_registered', user);
-                }
-            } catch (e) {
-                console.trace(e);
-            }
         });
     });
 }

@@ -6,14 +6,18 @@ User = {
     },
 
     async get(client_token) {
-        var query_string = `
-        SELECT *
-        FROM users
-        WHERE client_token = $1;`;
-        var result = await db.query(query_string, [client_token]);
-        var user = result.rows[0];
-        if (user) { user.password = null; } // remove sensitive info
-        return user;
+        try {
+            var query_string = `
+                SELECT *
+                FROM users
+                WHERE client_token = $1;`;
+            var result = await db.query(query_string, [client_token]);
+            var user = result.rows[0];
+            if (user) { user.password = null; } // remove sensitive info
+            return user;
+        } catch (e) {
+            console.trace(e.stack);
+        }
     },
 
     // only return certain values so that sensitive info isn't carelessly

@@ -4,9 +4,13 @@ Room = {
     DEFAULT_ROOM_NAME: 'general',
 
     async get_default() {
-        var result = await db.query("SELECT * FROM rooms WHERE name = $1;", [Room.DEFAULT_ROOM_NAME]);
-        default_room = result.rows[0];
-        return default_room;
+        try {
+            var result = await db.query("SELECT * FROM rooms WHERE name = $1;", [Room.DEFAULT_ROOM_NAME]);
+            default_room = result.rows[0];
+            return default_room;
+        } catch (e) {
+            console.trace(e.stack);
+        }
     },
 
     async get(id) {

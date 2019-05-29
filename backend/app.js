@@ -23,10 +23,10 @@ var app = express();
 var flash = require('connect-flash');
 var bodyParser = require('body-parser');
 
-require('./passport-config')(app);
-
-session = require('./session')
+session = require('./session');
 app.use(session);
+
+require('./passport-config')(app);
 
 app.use(flash());
 app.use(bodyParser.urlencoded({extended: true}));
