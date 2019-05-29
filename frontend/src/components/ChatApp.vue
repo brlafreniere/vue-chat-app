@@ -30,7 +30,10 @@
                 </div>
             </div>
             <div id="input-container">
-                <input id="new-message-input" v-model="message_input" type="text" placeholder="type message here..." @keyup.enter="create_message()" autocomplete="off">
+                <input
+                    id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
+                    autocomplete="off" @keyup.enter="create_message()"
+                >
             </div>
         </div>
     </div>
