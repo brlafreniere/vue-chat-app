@@ -6,34 +6,21 @@
                     <button @click="show_login_prompt">Login</button>
                 </div>
                 <div id="current-nick">
+                    <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
                     <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
                     {{ current_nickname }}
+
                     <!-- https://linearicons.com/free#cdn -->
                     <span class="lnr-button">
                         <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
                     </span>
-                    <svg v-show="current_user.registered" class="lnr lnr-warning"><use xlink:href="#lnr-warning"></use></svg>
                 </div>
             </div>
             <div id="room-panel">
-                <div id="users-list">
-                    <div>
-                        <span class="heading">ONLINE</span>
-                    </div>
-                    <ul>
-                        <li v-for="user in online_users" :key="user.nickname">
-                            {{ user.nickname }}
-                        </li>
-                    </ul>
-                    <div>
-                        <span class="heading">OFFLINE</span>
-                    </div>
-                    <ul>
-                        <li v-for="user in offline_users" :key="user.nickname">
-                            {{ user.nickname }}
-                        </li>
-                    </ul>
+                <div id="current-room">
+                    {{ current_room.name }}
                 </div>
+                <UsersList :current-room="current_room" />
             </div>
         </div>
         <div id="chat-window">
@@ -52,11 +39,15 @@
 <script>
 import sha1 from 'sha1'
 
+import UsersList from './UsersList'
+
 export default {
+    components: {
+        UsersList
+    },
     data () {
         return {
             messages: [],
-            users_list: [],
             message_input: '',
             current_nickname: '',
             current_room: {},
@@ -66,22 +57,56 @@ export default {
         }
     },
     computed: {
-        online_users: function () {
-            return this.users_list.filter((user) => {
-                return user.online_status
-            })
-        },
-        offline_users: function () {
-            return this.users_list.filter((user) => {
-                return !user.online_status
-            })
-        }
     },
-    mounted () {
-        this.current_nickname = this.generate_nickname()
-        if (this.check_client_string()) {
-            this.get_nickname_from_server()
+    async mounted () {
+        // get nickname from cookies
+        this.current_nickname = this.$cookies.get('nickname')
+
+        // generate nickname and set cookie if none loaded from cookies
+        if (!this.current_nickname) {
+            this.current_nickname = this.generate_nickname()
+            this.$cookies.set('nickname', this.current_nickname)
         }
+
+        // check for client token
+        this.client_token = this.$cookies.get('client_token')
+        if (!this.client_token) {
+            this.client_token = this.generate_client_token()
+            this.$cookies.set('client_token', this.client_token)
+        }
+
+        var after_join_room = () => {
+            this.$socket.emit('load_room_messages', this.current_room.id)
+            this.$socket.emit('set_online_status')
+        }
+
+        var after_get_room = (room) => {
+            this.current_room = room
+            this.$socket.emit('join_room', this.current_room.id, after_join_room)
+        }
+
+        var after_current_user_set = () => {
+            this.$socket.emit('set_current_user', this.current_user)
+            this.$socket.emit('get_room', this.current_user.primary_room_id, after_get_room)
+        }
+
+        var after_get_current_user = (current_user) => {
+            if (current_user) {
+                this.current_user = current_user
+                after_current_user_set()
+            } else {
+                this.$socket.emit('create_user', this.current_nickname, (current_user) => {
+                    this.current_user = current_user
+                    after_current_user_set()
+                })
+            }
+        }
+
+        var after_set_client_token = () => {
+            this.$socket.emit('get_current_user', after_get_current_user)
+        }
+
+        this.$socket.emit('set_client_token', this.client_token, after_set_client_token)
     },
     updated: function () {
         this.$nextTick(function () {
@@ -95,17 +120,7 @@ export default {
         load_messages (messages, test) {
             this.messages = messages
         },
-        initial_room (room) {
-            this.current_room = room
-            this.join_room(this.current_room.id)
-            this.load_room_messages()
-            this.get_users_list()
-        },
-        load_users_list (users) {
-            this.users_list = users
-        },
         new_message (message) {
-            console.log(message)
             this.messages.push(message)
             var container = this.$el.querySelector('#messages-box')
             container.scrollTop = container.scrollHeight
@@ -118,19 +133,8 @@ export default {
         show_login_prompt () {
             this.$store.commit('open_login_prompt')
         },
-        logout () {
-        },
         load_room_messages () {
             this.$socket.emit('load_room_messages', { room_id: this.current_room.id })
-        },
-        join_room (room_id) {
-            this.$socket.emit('join_room', { room_id: room_id, client_string: this.client_string }, (success) => {
-            })
-        },
-        get_users_list () {
-            this.$socket.emit('get_users_list', { room_id: this.current_room.id }, (users_list) => {
-                this.users_list = users_list
-            })
         },
         generate_nickname () {
             // 5 digit number
@@ -138,36 +142,9 @@ export default {
             var nickname = 'rando_' + randomNumber
             return nickname
         },
-        generate_client_str () {
+        generate_client_token () {
             var clientStr = sha1(Math.floor(Date.now() / 1000))
             return clientStr
-        },
-        check_client_string () {
-            if (!this.$cookies.isKey('client_string')) {
-                this.client_string = this.generate_client_str()
-                this.$cookies.set('client_string', this.client_string)
-                return false
-            } else {
-                this.client_string = this.$cookies.get('client_string')
-                return true
-            }
-        },
-        get_nickname_from_server () {
-            this.$socket.emit('get_nickname', this.client_string, (user) => {
-                if (user) {
-                    this.current_nickname = user.nickname
-                    this.user = user
-                } else {
-                    this.register_nickname_with_server(this.current_nickname)
-                }
-            })
-        },
-        register_nickname_with_server (nickname) {
-            var payload = {
-                nickname: nickname,
-                client_string: this.client_string
-            }
-            this.$socket.emit('nickname_register', payload)
         },
         create_message () {
             var payload = {
@@ -205,6 +182,8 @@ body {
     font-family: 'Open Sans', sans-serif;
 }
 
+$standard-padding-amount: 1em;
+
 $messages-window-color: #b5e5d4;
 $messages-window-text-color: black;
 
@@ -213,6 +192,7 @@ $user-panel-color: #349b52;
 $current-nick-color: #4f4f4f;
 $input-container-color: $current-nick-color;
 $message-timestamp-color: black;
+$current-room-color: #4872b5;
 
 @mixin button-base() {
     background-color: #306ed3;
@@ -278,7 +258,7 @@ $message-timestamp-color: black;
 #current-nick {
     text-align: center;
     background-color: $current-nick-color;
-    padding: 1em;
+    padding: $standard-padding-amount;
 }
 
 #chat-window {
@@ -324,22 +304,6 @@ $message-timestamp-color: black;
     padding: 5px;
 }
 
-#users-list ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    margin-left: 1em;
-}
-
-#users-list > div {
-    padding: 1em;
-    text-align: center;
-}
-
-.heading {
-    font-family: 'Open Sans', sans-serif;
-}
-
 .message-timestamp {
     visibility: hidden;
     font-size: 0.8em;
@@ -348,5 +312,11 @@ $message-timestamp-color: black;
 
 .message:hover > .message-timestamp {
     visibility: visible;
+}
+
+#current-room {
+    text-align: center;
+    background-color: $current-room-color;
+    padding: $standard-padding-amount;
 }
 </style>

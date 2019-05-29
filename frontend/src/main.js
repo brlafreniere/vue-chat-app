@@ -21,7 +21,7 @@ Vue.use(VuejsDialog)
 Vue.use(VueCookies)
 Vue.use(VueMoment, { moment })
 
-const connectionUrl = 'http://lizardgizzards.com:' + process.env.VUE_APP_PORT
+const connectionUrl = 'http://pluto.lizardgizzards.com:' + process.env.VUE_APP_PORT
 
 Vue.use(new VueSocketIO({
     debug: true,

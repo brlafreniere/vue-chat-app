@@ -1,6 +1,6 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-var db = require('./db');
+var db = require('./lib/db');
 
 module.exports = function (app) {
 	passport.use(new LocalStrategy(

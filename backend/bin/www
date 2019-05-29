@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+console.log("***");
+
 /**
  * Module dependencies.
  */
@@ -22,8 +24,8 @@ app.set('port', port);
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 
-require('../socket-io-event-handlers')(io);
-require('../socket-io-auth')(io);
+require('../lib/socket-io/event-handlers')(io);
+require('../lib/socket-io/auth')(io);
 
 var sharedSession = require('express-socket.io-session');
 var session = require('../session');
