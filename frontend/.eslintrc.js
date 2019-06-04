@@ -1,26 +1,17 @@
 module.exports = {
-    extends: ["vue", "standard", "plugin:vue/recommended", "plugin:vue/essential"],
-    plugins: ["vue", "import"],
-    rules: {
-        indent: ["error", 4],
-		"vue/html-indent": ["error", 4, {
-			"attribute": 1,
-			"baseIndent": 1,
-			"closeBracket": 0,
-			"alignAttributesVertically": true,
-			"ignores": []
-		}],
-        "vue/name-property-casing": ["error", "PascalCase"],
-		"vue/max-attributes-per-line": ["error", {
-			"singleline": 5,
-			"multiline": {
-				"max": 5,
-				"allowFirstLine": false
-			}
-		}],
-        "camelcase": "off",
-        "vue/singleline-html-element-content-newline": "off",
-        "vue/html-self-closing": "off",
-        "vue/prop-name-casing": "off"
-    }
-};
+  root: true,
+  env: {
+    node: true
+  },
+  'extends': [
+    'plugin:vue/essential',
+    'eslint:recommended'
+  ],
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+  },
+  parserOptions: {
+    parser: 'babel-eslint'
+  }
+}

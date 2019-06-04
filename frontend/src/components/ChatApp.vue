@@ -120,7 +120,7 @@ export default {
     sockets: {
         connect () {
         },
-        load_messages (messages, test) {
+        load_messages (messages) {
             this.messages = messages
         },
         new_message (message) {

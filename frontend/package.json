@@ -1,89 +1,43 @@
 {
-  "name": "frontend",
+  "name": "vue-testing-skel",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test": "jest"
+    "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "acorn": "^6.1.1",
-    "acorn-dynamic-import": "^4.0.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
-    "core-js": "^2.6.9",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.17.3",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.1.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "moment": "^2.24.0",
+    "axios": "^0.18.0",
+    "core-js": "^2.6.5",
     "moment-timezone": "^0.5.25",
     "node-sass": "^4.12.0",
-    "passport-local": "^1.0.0",
+    "sass-loader": "^7.1.0",
     "sha1": "^1.1.1",
     "vue": "^2.6.10",
     "vue-authenticate": "^1.4.1",
-    "vue-cookies": "^1.5.13",
+    "vue-axios": "^2.1.4",
     "vue-moment": "^4.0.0",
-    "vue-router": "^3.0.6",
+    "vue-router": "^3.0.3",
     "vue-socket.io": "^3.0.7",
     "vuejs-dialog": "^1.4.0",
-    "vuex": "^3.1.1"
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",
     "@vue/cli-plugin-eslint": "^3.8.0",
+    "@vue/cli-plugin-unit-jest": "^3.8.0",
     "@vue/cli-service": "^3.8.0",
-    "@vue/test-utils": "^1.0.0-beta.29",
+    "@vue/test-utils": "1.0.0-beta.29",
+    "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
-    "babel-jest": "^24.8.0",
+    "babel-jest": "^23.6.0",
     "eslint": "^5.16.0",
-    "eslint-plugin-vue": "^5.2.2",
-    "jest": "^24.8.0",
-    "jsdom": "^15.1.1",
-    "jsdom-global": "^3.0.2",
-    "mocha": "^6.1.4",
-    "sass": "^1.20.1",
-    "sass-loader": "^7.1.0",
-    "vue-jest": "^3.0.4",
-    "vue-template-compiler": "^2.5.21"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "rules": {},
-    "parserOptions": {
-      "parser": "babel-eslint"
-    }
-  },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "vue"
-    ],
-    "transform": {
-      ".*\\.(vue)$": "<rootDir>/node_modules/vue-jest",
-      "^.+\\.js$": "<rootDir>/node_modules/babel-jest"
-    }
+    "eslint-plugin-vue": "^5.0.0",
+    "less": "^3.0.4",
+    "less-loader": "^4.1.0",
+    "vue-cookies": "^1.5.13",
+    "vue-template-compiler": "^2.6.10"
   }
 }
