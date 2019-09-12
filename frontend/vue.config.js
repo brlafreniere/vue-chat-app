@@ -6,6 +6,13 @@ module.exports = {
         overlay: {
             warnings: true,
             errors: true
+        },
+        proxy: {
+            "^/api": {
+                target: "http://lab.lizardgizzards.com:4001",
+                changeOrigin: true,
+                pathRewrite: { "^/api": "" }
+            }
         }
     },
     publicPath: "/",

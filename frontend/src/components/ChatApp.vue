@@ -8,7 +8,7 @@
                 <div id="current-nick">
                     <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
                     <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
-                    {{ current_nickname }}
+                    {{ nickname }}
 
                     <!-- https://linearicons.com/free#cdn -->
                     <span class="lnr-button">
@@ -32,7 +32,7 @@
             <div id="input-container">
                 <input
                     id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
-                    autocomplete="off" @keyup.enter="create_message()"
+                    autocomplete="off" @keyup.enter="send_message()"
                 >
             </div>
         </div>
@@ -50,66 +50,30 @@ export default {
     },
     data () {
         return {
-            messages: [],
-            message_input: '',
-            current_nickname: '',
-            current_room: {},
             client_string: '',
-            user_id: 0,
-            current_user: {}
+            current_room: {},
+            current_user: {},
+            message_input: '',
+            messages: [],
+            nickname: '',
+            room_list: [],
+            user_id: 0
         }
     },
     computed: {
     },
     async mounted () {
-        // get nickname from cookies
-        this.current_nickname = this.$cookies.get('nickname')
-
-        // generate nickname and set cookie if none loaded from cookies
-        if (!this.current_nickname) {
-            this.current_nickname = this.generate_nickname()
-            this.$cookies.set('nickname', this.current_nickname)
-        }
-
         // check for client token
         this.client_token = this.$cookies.get('client_token')
+
         if (!this.client_token) {
             this.client_token = this.generate_client_token()
             this.$cookies.set('client_token', this.client_token)
         }
 
-        var after_join_room = () => {
-            this.$socket.emit('load_room_messages', this.current_room.id)
-            this.$socket.emit('set_online_status')
-        }
-
-        var after_get_room = (room) => {
-            this.current_room = room
-            this.$socket.emit('join_room', this.current_room.id, after_join_room)
-        }
-
-        var after_current_user_set = () => {
-            this.$socket.emit('set_current_user', this.current_user)
-            this.$socket.emit('get_room', this.current_user.primary_room_id, after_get_room)
-        }
-
-        var after_get_current_user = (current_user) => {
-            if (current_user) {
-                this.current_user = current_user
-                after_current_user_set()
-            } else {
-                this.$socket.emit('create_user', this.current_nickname, (current_user) => {
-                    this.current_user = current_user
-                    after_current_user_set()
-                })
-            }
-        }
-
-        var after_set_client_token = () => {
-            this.$socket.emit('get_current_user', after_get_current_user)
-        }
-
-        this.$socket.emit('set_client_token', this.client_token, after_set_client_token)
+        // general user channel/chat related channel for setup, meta related stuff
+        this.$cable.subscribe({ channel: 'ChatChannel'})
+        this.$cable.subscribe({ channel: 'RoomChannel'})
     },
     updated: function () {
         this.$nextTick(function () {
@@ -117,7 +81,18 @@ export default {
             container.scrollTop = container.scrollHeight
         })
     },
-    sockets: {
+    channels: {
+        ChatChannel: {
+            received(data) {
+                if (data.room_list) { 
+                    this.room_list = data.room_list
+                    this.$cable.subscribe({ channel: 'RoomChannel', room_list: this.room_list})
+                }
+                if (data.nickname) {
+                    this.nickname = data.nickname
+                }
+            }
+        },
         connect () {
         },
         load_messages (messages) {
@@ -137,26 +112,26 @@ export default {
             this.$store.commit('open_login_prompt')
         },
         load_room_messages () {
-            this.$socket.emit('load_room_messages', { room_id: this.current_room.id })
-        },
-        generate_nickname () {
-            // 5 digit number
-            var randomNumber = Math.floor(Math.random() * 100000)
-            var nickname = 'rando_' + randomNumber
-            return nickname
+            this.$cable.perform({
+                channel: 'ChatChannel',
+                action: 'messages',
+                data: { room: this.current_room }
+            })
         },
         generate_client_token () {
             var clientStr = sha1(Math.floor(Date.now() / 1000))
             return clientStr
         },
-        create_message () {
-            var payload = {
-                nickname: this.current_nickname,
-                room_id: this.current_room.id,
-                message: this.message_input
-            }
-            this.$socket.emit('create_message', payload)
-            this.message_input = ''
+        send_message () {
+            console.log(this.current_room)
+            this.$cable.perform({
+                channel: "ChatChannel",
+                action: "new_message",
+                data: {
+                    message: this.message_input,
+                    room: this.current_room
+                }
+            });
         },
         prompt_nickname () {
             this.$dialog
@@ -166,12 +141,20 @@ export default {
                     promptHelp: 'This doesn\'t work yet lol'
                 })
                 .then(dialog => {
-                    this.current_nickname = dialog.data
-                    this.register_nickname_with_server(this.current_nickname)
+                    var new_nickname = dialog.data;
+                    this.nickname = new_nickname;
+                    this.register_nickname_with_server(new_nickname, (err) => {
+                        if (!err) {
+                            this.$cookies.set('nickname', this.nickname)
+                        }
+                    });
                 })
                 .catch(() => {
                     console.log('Prompt dismissed')
                 })
+        },
+        register_nickname_with_server(new_nickname, next) {
+            this.$socket.emit('update_nickname', this.client_token, new_nickname, next)
         }
     }
 }

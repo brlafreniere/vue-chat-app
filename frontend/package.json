@@ -9,6 +9,7 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "actioncable-vue": "^1.3.0",
     "axios": "^0.18.0",
     "core-js": "^2.6.5",
     "moment-timezone": "^0.5.25",
@@ -16,7 +17,6 @@
     "sass-loader": "^7.1.0",
     "sha1": "^1.1.1",
     "vue": "^2.6.10",
-    "vue-authenticate": "^1.4.1",
     "vue-axios": "^2.1.4",
     "vue-moment": "^4.0.0",
     "vue-router": "^3.0.3",
