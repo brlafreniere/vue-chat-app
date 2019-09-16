@@ -15,11 +15,4 @@ class User < ApplicationRecord
     end
     chat_room.users << self unless chat_room.users.include?(self)
   end
-
-  # to be sent to the frontend
-  def room_list
-    self.chat_rooms.map do |chat_room|
-      {id: chat_room.id, name: chat_room.name}
-    end
-  end
 end

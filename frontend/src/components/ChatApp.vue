@@ -8,7 +8,7 @@
                 <div id="current-nick">
                     <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
                     <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
-                    {{ nickname }}
+                    {{ user.nickname }}
 
                     <!-- https://linearicons.com/free#cdn -->
                     <span class="lnr-button">
@@ -18,8 +18,13 @@
             </div>
             <div id="room-panel">
                 <div id="current-room">
-                    {{ current_room.name }}
+                    Room: {{ current_room.name }}
                 </div>
+                <ul id="rooms-list">
+                    <li v-for="chat_room in user.chat_rooms" :key="chat_room.id">
+                        {{ chat_room.name }}
+                    </li>
+                </ul>
                 <UsersList :current-room="current_room" />
             </div>
         </div>
@@ -50,13 +55,14 @@ export default {
     },
     data () {
         return {
+            user: {},
+            rooms: {},
             client_string: '',
             current_room: {},
             current_user: {},
             message_input: '',
             messages: [],
             nickname: '',
-            room_list: [],
             user_id: 0
         }
     },
@@ -71,9 +77,17 @@ export default {
             this.$cookies.set('client_token', this.client_token)
         }
 
-        // general user channel/chat related channel for setup, meta related stuff
-        this.$cable.subscribe({ channel: 'ChatChannel'})
-        this.$cable.subscribe({ channel: 'RoomChannel'})
+        this.axios.get('/api/user/' + this.client_token + ".json").then( (response) => {
+            this.user = response.data
+            // the first room in the list will be the current room initially
+            this.current_room = this.user.chat_rooms[0]
+
+            // general user channel/chat related channel for setup, meta related stuff
+            this.user.chat_rooms.forEach( (chat_room) => {
+                this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
+            })
+        })
+
     },
     updated: function () {
         this.$nextTick(function () {
@@ -82,15 +96,9 @@ export default {
         })
     },
     channels: {
-        ChatChannel: {
+        ChatRoomChannel: {
             received(data) {
-                if (data.room_list) { 
-                    this.room_list = data.room_list
-                    this.$cable.subscribe({ channel: 'RoomChannel', room_list: this.room_list})
-                }
-                if (data.nickname) {
-                    this.nickname = data.nickname
-                }
+                this.messages.push(data)
             }
         },
         connect () {
@@ -123,13 +131,12 @@ export default {
             return clientStr
         },
         send_message () {
-            console.log(this.current_room)
             this.$cable.perform({
-                channel: "ChatChannel",
+                channel: "ChatRoomChannel",
                 action: "new_message",
                 data: {
-                    message: this.message_input,
-                    room: this.current_room
+                    message_text: this.message_input,
+                    chat_room_id: this.current_room.id
                 }
             });
         },
@@ -304,5 +311,16 @@ $current-room-color: #4872b5;
     text-align: center;
     background-color: $current-room-color;
     padding: $standard-padding-amount;
+}
+
+#rooms-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+#rooms-list li {
+    background-color: #97b046;
 }
 </style>

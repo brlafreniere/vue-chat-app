@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get '/user/:client_token', to: "users#by_client_token"
   resources :users
   post '/chat_room/join', to: "chat_room#join"
   resources :chat_room

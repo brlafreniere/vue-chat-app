@@ -5,13 +5,6 @@ module ApplicationCable
     def connect
       user = User.find_by client_token: cookies[:client_token]
 
-      if not user
-        user = User.new
-        user.client_token = cookies[:client_token]
-        user.chat_rooms << ChatRoom.default_room
-        user.save
-      end
-
       user.online = true
       user.save
 

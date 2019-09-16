@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_08_07_165109) do
+ActiveRecord::Schema.define(version: 2019_09_16_061251) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,19 +34,7 @@ ActiveRecord::Schema.define(version: 2019_08_07_165109) do
     t.string "nickname", limit: 100, null: false
     t.datetime "created_at", null: false
     t.integer "user_id"
-    t.integer "room_id", null: false
-  end
-
-  create_table "room_users", id: false, force: :cascade do |t|
-    t.integer "room_id", null: false
-    t.integer "user_id", null: false
-    t.index ["room_id", "user_id"], name: "room_users_room_id_user_id_key", unique: true
-  end
-
-  create_table "rooms", id: :serial, force: :cascade do |t|
-    t.string "name", limit: 100, null: false
-    t.datetime "created_at", null: false
-    t.index ["name"], name: "rooms_name_key", unique: true
+    t.integer "chat_room_id", null: false
   end
 
   create_table "users", force: :cascade do |t|
@@ -58,6 +46,4 @@ ActiveRecord::Schema.define(version: 2019_08_07_165109) do
     t.boolean "online"
   end
 
-  add_foreign_key "messages", "rooms", name: "messages_room_id_fkey"
-  add_foreign_key "room_users", "rooms", name: "room_users_room_id_fkey"
 end

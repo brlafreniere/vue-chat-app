@@ -12,6 +12,16 @@ class UsersController < ApplicationController
   def show
   end
 
+  def by_client_token
+    @user = User.find_by(client_token: params[:client_token])
+    if not @user
+      @user = User.new
+      @user.client_token = params[:client_token]
+      @user.chat_rooms << ChatRoom.default_room
+      @user.save
+    end
+  end
+
   # GET /users/new
   def new
     @user = User.new
