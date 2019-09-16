@@ -21,7 +21,7 @@ export default {
                 .then(() => {
                     this.$store.commit('close_login_prompt')
                 }).catch(error => {
-                    console.log(error)
+                    alert(error)
                 })
         },
         register (username, password) {

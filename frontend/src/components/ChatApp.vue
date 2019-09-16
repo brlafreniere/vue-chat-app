@@ -157,7 +157,7 @@ export default {
                     });
                 })
                 .catch(() => {
-                    console.log('Prompt dismissed')
+                    alert('Prompt dismissed')
                 })
         },
         register_nickname_with_server(new_nickname, next) {
