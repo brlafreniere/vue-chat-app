@@ -35,10 +35,12 @@
                 </div>
             </div>
             <div id="input-container">
-                <input
-                    id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
-                    autocomplete="off" @keyup.enter="send_message()"
-                >
+                <form autocomplete="off">
+                    <input
+                        id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
+                        autocomplete="off" @keyup.enter="send_message()"
+                    >
+                </form>
             </div>
         </div>
     </div>
