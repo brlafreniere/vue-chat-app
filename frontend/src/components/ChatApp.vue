@@ -138,7 +138,8 @@ export default {
                     message_text: this.message_input,
                     chat_room_id: this.current_room.id
                 }
-            });
+            })
+            this.message_input = ""
         },
         prompt_nickname () {
             this.$dialog
