@@ -77,7 +77,7 @@ export default {
             this.$cookies.set('client_token', this.client_token)
         }
 
-        this.axios.get('/api/user/' + this.client_token + ".json").then( (response) => {
+        this.axios.get(process.env.VUE_APP_API_URL + '/user/' + this.client_token + ".json").then( (response) => {
             this.user = response.data
             // the first room in the list will be the current room initially
             this.current_room = this.user.chat_rooms[0]

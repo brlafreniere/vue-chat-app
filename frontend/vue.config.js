@@ -1,3 +1,5 @@
+console.log(process.env.VUE_APP_API_URL);
+
 module.exports = {
     devServer: {
         disableHostCheck: true,
@@ -9,7 +11,7 @@ module.exports = {
         },
         proxy: {
             "^/api": {
-                target: "http://lab.lizardgizzards.com:4001",
+                target: process.env.VUE_APP_API_URL,
                 changeOrigin: true,
                 pathRewrite: { "^/api": "" }
             }

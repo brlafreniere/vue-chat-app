@@ -2,15 +2,15 @@ class ChatRoomController < ApplicationController
   before_action :set_chat_room, only: [:show, :edit, :update, :destroy]
   skip_before_action :verify_authenticity_token
 
-  def join
-    user = User.find_by client_token: params[:client_token]
+  # def join
+  #   user = User.find_by client_token: params[:client_token]
 
-    if user
-      user.join_room params[:room_name]
-    else
+  #   if user
+  #     user.join_room params[:room_name]
+  #   else
 
-    render :nothing => true
-  end
+  #   render :nothing => true
+  # end
 
   # GET /chat_rooms
   # GET /chat_rooms.json

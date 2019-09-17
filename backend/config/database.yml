@@ -24,4 +24,6 @@ test:
 
 production:
   <<: *default
-  database: db/production.sqlite3
+  database: vue_chat_app
+  username: vue_chat_app
+  password: vue_chat_app
