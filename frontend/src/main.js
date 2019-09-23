@@ -24,7 +24,7 @@ const connectionUrl = process.env.VUE_APP_ACTION_CABLE_URL
 
 Vue.use(ActionCableVue, {
     debug: true,
-    debugLevel: 'error',
+    debugLevel: 'all',
     connectionUrl: connectionUrl,
     connectImmediately: true
 });

@@ -1,5 +1,5 @@
 Rails.application.configure do
-  config.action_cable.url = "ws://lab.lizardgizzards.com:4001/cable"
+  config.action_cable.url = "/cable"
   config.action_cable.allowed_request_origins = [/http:\/\/*/, /https:\/\/*/]
 
   # Settings specified here will take precedence over those in config/application.rb.

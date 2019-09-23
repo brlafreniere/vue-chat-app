@@ -1,5 +1,9 @@
 <template>
     <div id="chat-app-container" class="container-fluid">
+        <NicknamePrompt
+            @updateNickname="updateNickname"
+            :showPrompt="nicknamePromptEnabled"
+            @closeNicknamePrompt="nicknamePromptEnabled = false" />
         <div id="info-window">
             <div id="user-panel">
                 <div id="login-logout">
@@ -12,7 +16,7 @@
 
                     <!-- https://linearicons.com/free#cdn -->
                     <span class="lnr-button">
-                        <svg class="lnr lnr-pencil" @click="prompt_nickname()"><use xlink:href="#lnr-pencil" /></svg>
+                        <svg class="lnr lnr-pencil" @click="nicknamePromptEnabled = true"><use xlink:href="#lnr-pencil" /></svg>
                     </span>
                 </div>
             </div>
@@ -30,12 +34,12 @@
         </div>
         <div id="chat-window">
             <div id="messages-box">
-                <div v-for="message in messages" :key="message.id" class="message">
+                <div v-for="message in current_room.messages" :key="message.id" class="message">
                     {{ message.nickname }}: {{ message.text }} <span class="message-timestamp">{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A (MMM D, YYYY)") }}</span>
                 </div>
             </div>
             <div id="input-container">
-                <form autocomplete="off">
+                <form autocomplete="off" v-on:submit.prevent>
                     <input
                         id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
                         autocomplete="off" @keyup.enter="send_message()"
@@ -50,20 +54,22 @@
 import sha1 from 'sha1'
 
 import UsersList from './UsersList'
+import NicknamePrompt from './NicknamePrompt.vue'
 
 export default {
     components: {
-        UsersList
+        UsersList,
+        NicknamePrompt
     },
     data () {
         return {
             user: {},
-            rooms: {},
             client_string: '',
             current_room: {},
             current_user: {},
             message_input: '',
             messages: [],
+            nicknamePromptEnabled: false,
             nickname: '',
             user_id: 0
         }
@@ -79,7 +85,7 @@ export default {
             this.$cookies.set('client_token', this.client_token)
         }
 
-        this.axios.get(process.env.VUE_APP_API_URL + '/user/' + this.client_token + ".json").then( (response) => {
+        this.axios.get('/api/user/' + this.client_token + ".json").then( (response) => {
             this.user = response.data
             // the first room in the list will be the current room initially
             this.current_room = this.user.chat_rooms[0]
@@ -100,13 +106,13 @@ export default {
     channels: {
         ChatRoomChannel: {
             received(data) {
-                this.messages.push(data)
+                var chat_room_id = data.chat_room_id
+                var chat_room = this.user.chat_rooms.find((element) => {
+                    return element.id == chat_room_id
+                })
+                if (!chat_room.messages) { chat_room.messages = [] }
+                chat_room.messages.push(data)
             }
-        },
-        connect () {
-        },
-        load_messages (messages) {
-            this.messages = messages
         },
         new_message (message) {
             this.messages.push(message)
@@ -118,6 +124,9 @@ export default {
         }
     },
     methods: {
+        updateNickname(new_nickname) {
+            this.user.nickname = new_nickname
+        },
         show_login_prompt () {
             this.$store.commit('open_login_prompt')
         },
@@ -142,26 +151,6 @@ export default {
                 }
             })
             this.message_input = ""
-        },
-        prompt_nickname () {
-            this.$dialog
-                .prompt({
-                    title: 'Choose a nickname',
-                    body: 'Enter your desired nickname',
-                    promptHelp: 'This doesn\'t work yet lol'
-                })
-                .then(dialog => {
-                    var new_nickname = dialog.data;
-                    this.nickname = new_nickname;
-                    this.register_nickname_with_server(new_nickname, (err) => {
-                        if (!err) {
-                            this.$cookies.set('nickname', this.nickname)
-                        }
-                    });
-                })
-                .catch(() => {
-                    alert('Prompt dismissed')
-                })
         },
         register_nickname_with_server(new_nickname, next) {
             this.$socket.emit('update_nickname', this.client_token, new_nickname, next)
@@ -201,6 +190,7 @@ $current-room-color: #4872b5;
 .lnr-button {
     @include button-base;
     padding: 4px 5px 2px 6px;
+    cursor: pointer;
 }
 
 .lnr {
@@ -213,7 +203,6 @@ $current-room-color: #4872b5;
 }
 
 .lnr-pencil {
-    cursor: pointer;
     color: white;
 }
 

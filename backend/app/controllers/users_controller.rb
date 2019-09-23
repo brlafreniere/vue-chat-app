@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy]
+  skip_before_action :verify_authenticity_token, :only => [:by_client_token, :update_nickname]
 
   # GET /users
   # GET /users.json
@@ -20,6 +21,16 @@ class UsersController < ApplicationController
       @user.chat_rooms << ChatRoom.default_room
       @user.save
     end
+  end
+
+  def update_nickname
+    @user = User.find_by(client_token: cookies[:client_token])
+    old_nickname = @user.nickname
+    @user.nickname = params[:nickname]
+    @user.save
+    # @user.chat_rooms.each do |chat_room|
+    #   ChatRoomChannel.broadcast_to(chat_room, {action: "update_nickname", old_nickname: old_nickname, new_nickname: @user.nickname})
+    # end
   end
 
   # GET /users/new

@@ -8,7 +8,7 @@ Bundler.require(*Rails.groups)
 
 module BackendRails
   class Application < Rails::Application
-    config.action_cable.allowed_request_origins = ['http://vue-chat-app.lizardgizzards.com']
+    config.action_cable.allowed_request_origins = ['*']
 
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 5.2

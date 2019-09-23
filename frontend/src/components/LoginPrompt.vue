@@ -1,21 +1,5 @@
 <template>
-    <div v-show="show_login_prompt" id="prompt-component">
-        <div id="prompt-overlay" @click="close_prompt()">
-        </div>
-        <div id="prompt-box">
-            <div>
-                Username:
-            </div>
-            <input v-model="username" type="text" name="username" />
-            <div>
-                Password:
-            </div>
-            <input v-model="password" type="password" name="password" />
-            <div>
-                <button @click="login()">Login</button>
-            </div>
-        </div>
-    </div>
+    <div></div>
 </template>
 
 <script>
@@ -24,17 +8,6 @@ export default {
         return {
             username: '',
             password: ''
-        }
-    },
-    computed: {
-        show_login_prompt () { return this.$store.state.show_login_prompt }
-    },
-    methods: {
-        close_prompt () {
-            this.$store.commit('close_login_prompt')
-        },
-        login () {
-            this.$emit('login', this.username, this.password)
         }
     }
 }

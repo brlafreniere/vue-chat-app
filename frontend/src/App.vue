@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <ChatApp />
-        <LoginPrompt @login="login" />
+        <LoginPrompt />
     </div>
 </template>
 
@@ -13,25 +13,18 @@ export default {
     name: 'App',
     components: {
         ChatApp,
-        LoginPrompt
+        LoginPrompt,
     },
-    methods: {
-        login (username, password) {
-            this.$auth.login({ username: username, password: password })
-                .then(() => {
-                    this.$store.commit('close_login_prompt')
-                }).catch(error => {
-                    alert(error)
-                })
-        },
-        register (username, password) {
-            this.$auth.register({ username: username, password: password }).then(() => {
-                // Execute application logic after successful registration
-            })
-        }
-    }
 }
 </script>
 
 <style>
+.button-flex-row {
+    display: flex;
+    justify-content: center;
+}
+
+.full-width {
+    width: 100%;
+}
 </style>
