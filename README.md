@@ -2,7 +2,7 @@
 
 A simple real-time chat web application made with Vue.
 
-[Demo](http://vue-chat-app.lizardgizzards.com/) here (under development).
+If you would like to see a demo, I can send you a link.
 
 The `frontend` folder contains the Vue part of the application. The `backend`
 folder contains the Ruby on Rails backend.
