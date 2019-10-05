@@ -1,5 +1,6 @@
 class ChatRoom < ApplicationRecord
   has_and_belongs_to_many :users, :join_table => :chat_rooms_and_users
+  has_many :messages
   validates_uniqueness_of :name
 
   DEFAULT_ROOM_NAME = "General"

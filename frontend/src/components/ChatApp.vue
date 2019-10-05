@@ -21,10 +21,18 @@
                 </div>
             </div>
             <div id="room-panel">
+                <div id="room-options">
+                    <header>Room Options</header>
+                    <button
+                        @click='joinRoom'
+                        class='btn btn-primary btn-sm'>Join Room</button>
+                </div>
                 <div id="current-room">
-                    Room: {{ current_room.name }}
+                    <header>Current Room:</header>
+                    {{ current_room.name }}
                 </div>
                 <ul id="rooms-list">
+                    <header>Other Rooms</header>
                     <li v-for="chat_room in user.chat_rooms" :key="chat_room.id">
                         {{ chat_room.name }}
                     </li>
@@ -76,7 +84,7 @@ export default {
     },
     computed: {
     },
-    async mounted () {
+    mounted () {
         // check for client token
         this.client_token = this.$cookies.get('client_token')
 
@@ -94,8 +102,9 @@ export default {
             this.user.chat_rooms.forEach( (chat_room) => {
                 this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
             })
-        })
 
+            this.load_room_messages()
+        })
     },
     updated: function () {
         this.$nextTick(function () {
@@ -124,18 +133,21 @@ export default {
         }
     },
     methods: {
-        updateNickname(new_nickname) {
+        load_room_messages () {
+            this.axios.post('/api/chat_room/messages/', {room_id: this.user.chat_rooms[0].id})
+            .then((response) => {
+                console.log(response)
+                this.messages = response
+            });
+        },
+        joinRoom (event) {
+            console.log(event)
+        },
+        updateNickname (new_nickname) {
             this.user.nickname = new_nickname
         },
         show_login_prompt () {
             this.$store.commit('open_login_prompt')
-        },
-        load_room_messages () {
-            this.$cable.perform({
-                channel: 'ChatChannel',
-                action: 'messages',
-                data: { room: this.current_room }
-            })
         },
         generate_client_token () {
             var clientStr = sha1(Math.floor(Date.now() / 1000))
@@ -314,5 +326,10 @@ $current-room-color: #4872b5;
 
 #rooms-list li {
     background-color: #97b046;
+}
+
+#room-options {
+    text-align: center;
+    padding: 10px;
 }
 </style>
