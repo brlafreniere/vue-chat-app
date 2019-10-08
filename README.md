@@ -13,3 +13,9 @@ For deployment, and production setups, I use a systemd script to keep the rails
 server running. It's located at `/etc/systemd/vue-chat-app.service`.
 
 Taken from: https://gist.github.com/arslan-online/48fd1df0f6a8a7a8e554632c9066178b
+
+# Cookies
+
+In production, the rails server is unable to read cookies via the `cookies`
+hash. You must pass the `client_token` manually every time the Rails backend
+needs it.
