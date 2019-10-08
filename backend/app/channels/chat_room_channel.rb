@@ -13,6 +13,8 @@ class ChatRoomChannel < ApplicationCable::Channel
 
     chat_room = ChatRoom.find(chat_room_id)
 
+    current_user.reload
+
     message = Message.new
     message.text = message_text
     message.nickname = current_user.nickname
