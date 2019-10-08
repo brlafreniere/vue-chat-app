@@ -30,8 +30,13 @@ export default {
     },
     methods: {
         updateNickname () {
-            this.axios.post('/api/user/update_nickname', { nickname: this.nickname })
-                .then((response) => { })
+            this.axios.post(
+                process.env.VUE_APP_API_URL + '/user/update_nickname',
+                {
+                    nickname: this.nickname,
+                    client_token: this.$cookies.get('client_token')
+                }
+            ).then((response) => { })
             this.$emit('closeNicknamePrompt')
             this.$emit('updateNickname', this.nickname)
         }
