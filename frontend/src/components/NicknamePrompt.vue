@@ -30,9 +30,8 @@ export default {
     },
     methods: {
         updateNickname () {
-            this.axios.post('/api/update_nickname', {
-                nickname: this.nickname,
-            }).then((response) => { })
+            this.axios.post('/api/user/update_nickname', { nickname: this.nickname })
+                .then((response) => { })
             this.$emit('closeNicknamePrompt')
             this.$emit('updateNickname', this.nickname)
         }

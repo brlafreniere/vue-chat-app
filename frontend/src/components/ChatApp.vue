@@ -42,7 +42,7 @@
         </div>
         <div id="chat-window">
             <div id="messages-box">
-                <div v-for="message in current_room.messages" :key="message.id" class="message">
+                <div v-for="message in messages" :key="message.id" class="message">
                     {{ message.nickname }}: {{ message.text }} <span class="message-timestamp">{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A (MMM D, YYYY)") }}</span>
                 </div>
             </div>
@@ -74,17 +74,22 @@ export default {
             user: {},
             client_string: '',
             current_room: {},
+            current_room_id: null,
             current_user: {},
-            message_input: '',
             messages: [],
+            message_input: '',
             nicknamePromptEnabled: false,
             nickname: '',
             user_id: 0
         }
     },
-    computed: {
+    updated: function () {
+        this.$nextTick(function () {
+            var container = this.$el.querySelector('#messages-box')
+            container.scrollTop = container.scrollHeight
+        })
     },
-    mounted () {
+    async mounted () {
         // check for client token
         this.client_token = this.$cookies.get('client_token')
 
@@ -93,52 +98,30 @@ export default {
             this.$cookies.set('client_token', this.client_token)
         }
 
-        this.axios.get('/api/user/' + this.client_token + ".json").then( (response) => {
-            this.user = response.data
-            // the first room in the list will be the current room initially
-            this.current_room = this.user.chat_rooms[0]
+        // get user data, the rooms they are joined to, etc.
+        let response = await this.axios.get('/api/user/' + this.client_token + ".json");
 
-            // general user channel/chat related channel for setup, meta related stuff
-            this.user.chat_rooms.forEach( (chat_room) => {
-                this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
-            })
+        this.user = response.data
 
-            this.load_room_messages()
+        // the first room in the list will be the current room initially
+        this.change_room(this.user.chat_rooms[0])
+
+        // general user channel/chat related channel for setup, meta related stuff
+        this.user.chat_rooms.forEach( (chat_room) => {
+            this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
         })
-    },
-    updated: function () {
-        this.$nextTick(function () {
-            var container = this.$el.querySelector('#messages-box')
-            container.scrollTop = container.scrollHeight
-        })
-    },
-    channels: {
-        ChatRoomChannel: {
-            received(data) {
-                var chat_room_id = data.chat_room_id
-                var chat_room = this.user.chat_rooms.find((element) => {
-                    return element.id == chat_room_id
-                })
-                if (!chat_room.messages) { chat_room.messages = [] }
-                chat_room.messages.push(data)
-            }
-        },
-        new_message (message) {
-            this.messages.push(message)
-            var container = this.$el.querySelector('#messages-box')
-            container.scrollTop = container.scrollHeight
-        },
-        nickname_registered (user) {
-            this.user = user
-        }
+
+        this.load_room_messages()
     },
     methods: {
-        load_room_messages () {
-            this.axios.post('/api/chat_room/messages/', {room_id: this.user.chat_rooms[0].id})
-            .then((response) => {
-                console.log(response)
-                this.messages = response
-            });
+        async load_room_messages () {
+            let response = await this.axios.post('/api/chat_room/messages/', {chat_room_id: this.current_room.id})
+            response.data.forEach((el) => this.messages.push(el))
+        },
+        change_room(new_room) {
+            this.current_room = new_room
+            if (this.current_room.messages == undefined) { this.current_room.messages = [] }
+            this.messages = this.current_room.messages
         },
         joinRoom (event) {
             console.log(event)
@@ -166,6 +149,27 @@ export default {
         },
         register_nickname_with_server(new_nickname, next) {
             this.$socket.emit('update_nickname', this.client_token, new_nickname, next)
+        }
+    },
+    channels: {
+        ChatRoomChannel: {
+            received(data) {
+                var chat_room_id = data.chat_room_id
+                var chat_room = this.user.chat_rooms.find((element) => {
+                    return element.id == chat_room_id
+                })
+                console.log(chat_room)
+                if (!chat_room.messages) { chat_room.messages = [] }
+                chat_room.messages.push(data)
+            }
+        },
+        new_message (message) {
+            this.messages.push(message)
+            var container = this.$el.querySelector('#messages-box')
+            container.scrollTop = container.scrollHeight
+        },
+        nickname_registered (user) {
+            this.user = user
         }
     }
 }
