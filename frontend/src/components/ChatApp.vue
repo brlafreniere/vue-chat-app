@@ -99,7 +99,7 @@ export default {
         }
 
         // get user data, the rooms they are joined to, etc.
-        let response = await this.axios.get('/api/user/' + this.client_token + ".json");
+        let response = await this.axios.get(process.env.VUE_APP_API_URL + '/user/' + this.client_token + ".json")
 
         this.user = response.data
 
@@ -115,7 +115,7 @@ export default {
     },
     methods: {
         async load_room_messages () {
-            let response = await this.axios.post('/api/chat_room/messages/', {chat_room_id: this.current_room.id})
+            let response = await this.axios.post(process.env.VUE_APP_API_URL + '/chat_room/messages/', {chat_room_id: this.current_room.id})
             response.data.forEach((el) => this.messages.push(el))
         },
         change_room(new_room) {

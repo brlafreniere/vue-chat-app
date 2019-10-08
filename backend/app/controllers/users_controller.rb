@@ -13,7 +13,7 @@ class UsersController < ApplicationController
   end
 
   def update_nickname
-    @user = User.find_by(client_token: cookies[:client_token])
+    @user = User.find_by(client_token: params[:client_token])
     old_nickname = @user.nickname
     @user.nickname = params[:nickname]
     @user.save
