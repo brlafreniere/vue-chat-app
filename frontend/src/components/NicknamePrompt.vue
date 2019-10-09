@@ -1,7 +1,13 @@
 <template>
     <div id="nickname_prompt" v-show="showPrompt">
         <div id="nickname_prompt_body">
-            <input v-model="nickname" id="nickname_input" type="text" placeholder="Enter a new nickname" />
+            <input 
+                v-model="nickname"
+                id="nickname_input"
+                type="text"
+                ref="nickname_input"
+                @keyup.enter="updateNickname()"
+                placeholder="Enter a new nickname" />
             <div class='button-flex-row'>
                 <button
                     @click="updateNickname()"
@@ -28,6 +34,13 @@ export default {
     props: {
         showPrompt: Boolean
     },
+    watch: {
+        showPrompt: function (newValue, oldValue) {
+            if (newValue) {
+                this.$nextTick( () => this.$refs.nickname_input.focus())
+            }
+        }
+    },
     methods: {
         updateNickname () {
             this.axios.post(
@@ -39,6 +52,7 @@ export default {
             ).then((response) => { })
             this.$emit('closeNicknamePrompt')
             this.$emit('updateNickname', this.nickname)
+            this.nickname = ""
         }
     }
 }

@@ -24,33 +24,30 @@
 <script>
 export default {
     props: {
-        currentRoom: {
-            type: Object,
-            default: () => {
-                return {}
-            }
-        }
+        currentRoom: Object
     },
     data () {
         return {
-            users_list: []
+            users: []
         }
+    },
+    mounted () {
+        this.$nextTick( async () => {
+            let url = `${process.env.VUE_APP_API_URL}/chat_room/${this.currentRoom.id}/users`
+            let response = await this.axios.get(url)
+            this.users = response.data
+        })
     },
     computed: {
         online_users: function () {
-            return this.users_list.filter((user) => {
+            return this.users.filter((user) => {
                 return user.online_status
             })
         },
         offline_users: function () {
-            return this.users_list.filter((user) => {
+            return this.users.filter((user) => {
                 return !user.online_status
             })
-        }
-    },
-    sockets: {
-        refresh_users_list (users_list) {
-            this.users_list = users_list
         }
     }
 }

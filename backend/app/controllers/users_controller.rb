@@ -10,6 +10,7 @@ class UsersController < ApplicationController
       @user.chat_rooms << ChatRoom.default_room
       @user.save
     end
+    render :json => @user, :include => :chat_rooms
   end
 
   def update_nickname
