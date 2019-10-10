@@ -165,12 +165,19 @@ export default {
         subscribeToChatRoomChannels() {
             // general user channel/chat related channel for setup, meta related stuff
             this.current_user.chat_rooms.forEach( (chat_room) => {
-                this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
+                this.subscribeToChatRoomChannel(chat_room)
             })
+        },
+        subscribeToChatRoomChannel(chat_room) {
+            this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
         },
         async joinRoom (roomName) {
             await this.axios.post(`${process.env.VUE_APP_API_URL}/chat_room/join`, {name: roomName, client_token: this.client_token})
-            this.loadUserObject()
+            await this.loadUserObject()
+            let chat_room = this.current_user.chat_rooms.find((el) => {
+                return el.name == roomName
+            })
+            this.subscribeToChatRoomChannel(chat_room)
         },
         updateNickname (new_nickname) {
             this.current_user.nickname = new_nickname
