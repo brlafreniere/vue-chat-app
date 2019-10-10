@@ -44,6 +44,10 @@ describe('ChatApp.vue', () => {
     it('mounts without errors', () => {
         const wrapper = getWrapper()
     })
-    it('loads room messages without error', () => {
+    it('has a mounted hook', () => {
+        expect(typeof ChatApp.mounted).toBe('function')
+    })
+    it('loads room messages', () => {
+        const wrapper = getWrapper()
     })
 })

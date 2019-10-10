@@ -58,7 +58,7 @@
                 </div>
                 <div id="users-list">
                     <UsersList 
-                        v-if="current_room_loaded"
+                        v-if="users_list_ready"
                         :current-room="current_room" />
                 </div>
             </div>
@@ -90,7 +90,7 @@ export default {
             user: {},
             client_string: '',
             current_room: {},
-            current_room_loaded: false,
+            users_list_ready: false,
             current_room_id: null,
             current_user: {},
             messages: [],
@@ -107,14 +107,7 @@ export default {
         })
     },
     async mounted () {
-        // check for client token
-        this.client_token = this.$cookies.get('client_token')
-
-        if (!this.client_token) {
-            this.client_token = this.generate_client_token()
-            this.$cookies.set('client_token', this.client_token)
-        }
-
+        this.initializeClientToken()
         // get user data, the rooms they are joined to, etc.
         let url = `${process.env.VUE_APP_API_URL}/user/${this.client_token}`
         let response = await this.axios.get(url)
@@ -129,19 +122,27 @@ export default {
             this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
         })
 
-        this.load_room_messages()
+        this.loadRoomMessages()
     },
     methods: {
-        async load_room_messages () {
+        async loadRoomMessages () {
             let url = `${process.env.VUE_APP_API_URL}/chat_room/${this.current_room.id}/messages/`
             let response = await this.axios.get(url)
             response.data.forEach((el) => this.messages.push(el))
+        },
+        initializeClientToken () {
+            // check for client token
+            this.client_token = this.$cookies.get('client_token')
+
+            if (!this.client_token) {
+                this.client_token = this.generate_client_token()
+                this.$cookies.set('client_token', this.client_token)
+            }
         },
         change_room(new_room) {
             this.current_room = Object.assign(this.current_room, new_room)
             if (this.current_room.messages == undefined) { this.current_room.messages = [] }
             this.messages = this.current_room.messages
-            this.current_room_loaded = true
         },
         joinRoom (event) {
             console.log(event)
@@ -173,6 +174,10 @@ export default {
     },
     channels: {
         ChatRoomChannel: {
+            connected() {
+                console.log('here')
+                this.users_list_ready = true
+            },
             received(data) {
                 var chat_room_id = data.chat_room_id
                 var chat_room = this.user.chat_rooms.find((element) => {
