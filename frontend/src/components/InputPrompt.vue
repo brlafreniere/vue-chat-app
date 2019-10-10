@@ -1,19 +1,23 @@
 <template>
     <div id="input-prompt" v-show="showPrompt">
         <div id="body">
-            <input v-model="promptInput" id="prompt-input" type="text" :placeholder="" />
+            <input 
+                v-model="promptInput"
+                ref="input"
+                @keyup.enter="submitInput()"
+                id="prompt-input" type="text" :placeholder="placeholder" />
             <div class='button-flex-row'>
                 <button
-                    @click="updateNickname()"
+                    @click="submitInput"
                     class="btn btn-primary full-width"
-                    id="nickname_submit">{{ confirmButtonText }}</button>
+                    id="submit">{{ confirmButtonText }}</button>
                 <button
-                    @click="$emit('closeNicknamePrompt')"
+                    @click="$emit('closePrompt')"
                     class="btn btn-secondary full-width"
-                    id="nickname_cancel">Cancel</button>
+                    id="cancel">Cancel</button>
             </div>
         </div>
-        <div id="nickname_prompt_dark_overlay">
+        <div id="dark-overlay">
         </div>
     </div>
 </template>
@@ -22,7 +26,7 @@
 export default {
     data () {
         return {
-            promptData: ""
+            promptInput: ""
         }
     },
     props: {
@@ -30,20 +34,25 @@ export default {
         placeholder: String,
         confirmButtonText: String,
     },
+    watch: {
+        showPrompt: function (newValue, oldValue) {
+            if (newValue) {
+                this.$nextTick( () => this.$refs.input.focus() )
+            }
+        }
+    },
     methods: {
-        updateNickname () {
-            this.axios.post('/api/update_nickname', {
-                nickname: this.nickname,
-            }).then((response) => { })
-            this.$emit('closeNicknamePrompt')
-            this.$emit('updateNickname', this.nickname)
+        submitInput() {
+            this.$emit('inputEntered', this.promptInput)
+            this.$emit('closePrompt')
+            this.promptInput = ""
         }
     }
 }
 </script>
 
 <style lang="scss" scoped>
-#nickname_prompt_dark_overlay {
+#dark-overlay {
     position: absolute;
     z-index: 0;
     height: 100%;
@@ -54,7 +63,7 @@ export default {
     opacity: 0.5;
 }
 
-#nickname_prompt_body {
+#body {
     z-index: 10;
     width: 500px;
     margin-left: -250px;
@@ -66,13 +75,13 @@ export default {
     padding: 25px;
 }
 
-#nickname_input {
+#prompt-input {
     width: 100%;
     margin-bottom: 25px;
     text-align: center;
 }
 
-#nickname_submit {
+#submit {
     margin-right: 25px;
 }
 </style>
