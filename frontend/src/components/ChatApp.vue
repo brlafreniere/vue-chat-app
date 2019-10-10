@@ -24,6 +24,7 @@
                         :class="{ active: current_room.id == chat_room.id }"
                         :key="chat_room.id">
                         <a
+                            class='chat-room-link'
                             href="#"
                             :id="chat_room.id"
                             @click="newRoomSelected">{{ chat_room.name }}</a>
@@ -415,5 +416,17 @@ export default {
     #nickname-options {
         text-align: center;
         margin-bottom: 25px;
+    }
+
+    .chat-room-link:link {
+        color: white;
+    }
+
+    .chat-room-link:visited {
+        color: white;
+    }
+
+    .chat-room-link:hover {
+        text-decoration: none;
     }
 </style>
