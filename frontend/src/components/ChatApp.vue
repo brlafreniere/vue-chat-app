@@ -2,18 +2,24 @@
     <div id="chat-app-container" class="container-fluid">
         <NicknamePrompt
             @updateNickname="updateNickname"
-            :showPrompt="nicknamePromptEnabled"
-            @closeNicknamePrompt="nicknamePromptEnabled = false" />
+            :showPrompt="prompts.nickname"
+            @closeNicknamePrompt="prompts.nickname = false" />
+        <InputPrompt
+            :showPrompt="prompts.joinRoom"
+            @closePrompt="prompts.joinRoom = false"
+            placeholder="Room Name"
+            confirm-button-text="Join"
+            @inputEntered="joinRoom" />
         <div id="info-window">
             <div id="room-panel">
                 <div id="room-options">
                     <button
-                        @click='joinRoom'
+                        @click='prompts.joinRoom = true'
                         class='btn btn-primary btn-sm'>Join Room</button>
                 </div>
                 <ul id="rooms-list">
                     <li
-                        v-for="chat_room in user.chat_rooms"
+                        v-for="chat_room in current_user.chat_rooms"
                         class="room"
                         :class="{ active: current_room.id == chat_room.id }"
                         :key="chat_room.id">
@@ -26,13 +32,9 @@
                     <button @click="show_login_prompt">Login</button>
                 </div>
 
-                <!-- https://linearicons.com/free#cdn -->
-                <!-- <span class="lnr-button">
-                    <svg class="lnr lnr-pencil" @click="nicknamePromptEnabled = true"><use xlink:href="#lnr-pencil" /></svg>
-                </span> -->
                 <button 
                     class="btn btn-primary btn-sm"
-                    @click="nicknamePromptEnabled = true">
+                    @click="prompts.nickname = true">
                     Change Nickname
                 </button>
             </div>
@@ -46,7 +48,7 @@
                     <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
                     <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
                     <span id='current-nick-text'>
-                        {{ user.nickname }}
+                        {{ current_user.nickname }}
                     </span>
                 </div>
             </div>
@@ -79,25 +81,27 @@ import sha1 from 'sha1'
 
 import UsersList from './UsersList'
 import NicknamePrompt from './NicknamePrompt.vue'
+import InputPrompt from './InputPrompt.vue'
 
 export default {
     components: {
         UsersList,
-        NicknamePrompt
+        NicknamePrompt,
+        InputPrompt
     },
     data () {
         return {
-            user: {},
             client_string: '',
             current_room: {},
-            users_list_ready: false,
-            current_room_id: null,
             current_user: {},
-            messages: [],
             message_input: '',
-            nicknamePromptEnabled: false,
+            messages: [],
             nickname: '',
-            user_id: 0
+            prompts: {
+                nickname: false,
+                joinRoom: false,
+            },
+            users_list_ready: false,
         }
     },
     updated: function () {
@@ -107,21 +111,10 @@ export default {
         })
     },
     async mounted () {
-        this.initializeClientToken()
-        // get user data, the rooms they are joined to, etc.
-        let url = `${process.env.VUE_APP_API_URL}/user/${this.client_token}`
-        let response = await this.axios.get(url)
-
-        this.user = response.data
-
-        // the first room in the list will be the current room initially
-        this.change_room(this.user.chat_rooms[0])
-
-        // general user channel/chat related channel for setup, meta related stuff
-        this.user.chat_rooms.forEach( (chat_room) => {
-            this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
-        })
-
+        this.loadClientToken()
+        await this.loadUserObject()
+        this.setCurrentRoom(this.current_user.chat_rooms[0])
+        this.subscribeToChatRoomChannels()
         this.loadRoomMessages()
     },
     methods: {
@@ -130,7 +123,13 @@ export default {
             let response = await this.axios.get(url)
             response.data.forEach((el) => this.messages.push(el))
         },
-        initializeClientToken () {
+        async loadUserObject() {
+            // get user data, the rooms they are joined to, etc.
+            let url = `${process.env.VUE_APP_API_URL}/user/${this.client_token}`
+            let response = await this.axios.get(url)
+            this.current_user = Object.assign(this.current_user, response.data)
+        },
+        loadClientToken () {
             // check for client token
             this.client_token = this.$cookies.get('client_token')
 
@@ -139,16 +138,23 @@ export default {
                 this.$cookies.set('client_token', this.client_token)
             }
         },
-        change_room(new_room) {
-            this.current_room = Object.assign(this.current_room, new_room)
+        setCurrentRoom(room) {
+            this.current_room = room
             if (this.current_room.messages == undefined) { this.current_room.messages = [] }
             this.messages = this.current_room.messages
         },
-        joinRoom (event) {
-            console.log(event)
+        subscribeToChatRoomChannels() {
+            // general user channel/chat related channel for setup, meta related stuff
+            this.current_user.chat_rooms.forEach( (chat_room) => {
+                this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
+            })
+        },
+        async joinRoom (roomName) {
+            await this.axios.post(`${process.env.VUE_APP_API_URL}/chat_room/join`, {name: roomName, client_token: this.client_token})
+            this.updateRoomsList()
         },
         updateNickname (new_nickname) {
-            this.user.nickname = new_nickname
+            this.current_user.nickname = new_nickname
         },
         show_login_prompt () {
             this.$store.commit('open_login_prompt')
@@ -175,27 +181,22 @@ export default {
     channels: {
         ChatRoomChannel: {
             connected() {
-                console.log('here')
                 this.users_list_ready = true
             },
             received(data) {
                 var chat_room_id = data.chat_room_id
-                var chat_room = this.user.chat_rooms.find((element) => {
+                var chat_room = this.current_user.chat_rooms.find((element) => {
                     return element.id == chat_room_id
                 })
-                console.log(chat_room)
                 if (!chat_room.messages) { chat_room.messages = [] }
                 chat_room.messages.push(data)
             }
         },
-        new_message (message) {
+        /*new_message (message) {
             this.messages.push(message)
             var container = this.$el.querySelector('#messages-box')
             container.scrollTop = container.scrollHeight
-        },
-        nickname_registered (user) {
-            this.user = user
-        }
+        },*/
     }
 }
 </script>
@@ -300,14 +301,15 @@ export default {
         flex-grow: 1;
         display: flex;
         flex-direction: row;
+        overflow-y: scroll;
     }
 
     #messages-box {
         background-color: $messages-window-color;
         padding: 25px;
         color: $messages-window-text-color;
-        overflow-y: scroll;
         flex-grow: 1;
+        overflow-y: scroll;
     }
 
     #input-container {
