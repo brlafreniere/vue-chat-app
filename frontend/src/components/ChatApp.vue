@@ -23,7 +23,10 @@
                         class="room"
                         :class="{ active: current_room.id == chat_room.id }"
                         :key="chat_room.id">
-                        {{ chat_room.name }}
+                        <a
+                            href="#"
+                            :id="chat_room.id"
+                            @click="newRoomSelected">{{ chat_room.name }}</a>
                     </li>
                 </ul>
             </div>
@@ -31,12 +34,6 @@
                 <div id="login-logout">
                     <button @click="show_login_prompt">Login</button>
                 </div>
-
-                <button 
-                    class="btn btn-primary btn-sm"
-                    @click="prompts.nickname = true">
-                    Change Nickname
-                </button>
             </div>
         </div>
         <div id="chat-window">
@@ -54,11 +51,18 @@
             </div>
             <div id="messages-container">
                 <div id="messages-box">
-                    <div v-for="message in messages" :key="message.id" class="message">
+                    <div v-for="message in messages[current_room.name]" :key="message.id" class="message">
                         {{ message.nickname }}: {{ message.text }} <span class="message-timestamp">{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A (MMM D, YYYY)") }}</span>
                     </div>
                 </div>
-                <div id="users-list">
+                <div id="right-pane">
+                    <div id="nickname-options">
+                        <button 
+                            class="btn btn-primary btn-sm"
+                            @click="prompts.nickname = true">
+                            Change Nickname
+                        </button>
+                    </div>
                     <UsersList 
                         v-if="users_list_ready"
                         :current-room="current_room" />
@@ -95,8 +99,7 @@ export default {
             current_room: {},
             current_user: {},
             message_input: '',
-            messages: [],
-            nickname: '',
+            messages: {},
             prompts: {
                 nickname: false,
                 joinRoom: false,
@@ -121,13 +124,18 @@ export default {
         async loadRoomMessages () {
             let url = `${process.env.VUE_APP_API_URL}/chat_room/${this.current_room.id}/messages/`
             let response = await this.axios.get(url)
-            response.data.forEach((el) => this.messages.push(el))
+            if (this.messages[this.current_room.name] == undefined) { 
+                this.$set(this.messages, this.current_room.name, [])
+            }
+            response.data.forEach((el) => this.messages[this.current_room.name].push(el))
         },
-        async loadUserObject() {
-            // get user data, the rooms they are joined to, etc.
+        async getUserObject() {
             let url = `${process.env.VUE_APP_API_URL}/user/${this.client_token}`
             let response = await this.axios.get(url)
-            this.current_user = Object.assign(this.current_user, response.data)
+            return response.data;
+        },
+        async loadUserObject() {
+            this.current_user = await this.getUserObject()
         },
         loadClientToken () {
             // check for client token
@@ -138,10 +146,21 @@ export default {
                 this.$cookies.set('client_token', this.client_token)
             }
         },
+        newRoomSelected(event) {
+            let chat_room_id = event.target.id
+            this.changeRoom(chat_room_id)
+        },
+        changeRoom(chat_room_id) {
+            let room = this.current_user.chat_rooms.find( (el) => {
+                return el.id == chat_room_id
+            })
+            this.setCurrentRoom(room)
+            if (this.messages[room.name] == undefined) {
+                this.loadRoomMessages()
+            }
+        },
         setCurrentRoom(room) {
             this.current_room = room
-            if (this.current_room.messages == undefined) { this.current_room.messages = [] }
-            this.messages = this.current_room.messages
         },
         subscribeToChatRoomChannels() {
             // general user channel/chat related channel for setup, meta related stuff
@@ -151,7 +170,7 @@ export default {
         },
         async joinRoom (roomName) {
             await this.axios.post(`${process.env.VUE_APP_API_URL}/chat_room/join`, {name: roomName, client_token: this.client_token})
-            this.updateRoomsList()
+            this.loadUserObject()
         },
         updateNickname (new_nickname) {
             this.current_user.nickname = new_nickname
@@ -184,19 +203,15 @@ export default {
                 this.users_list_ready = true
             },
             received(data) {
-                var chat_room_id = data.chat_room_id
-                var chat_room = this.current_user.chat_rooms.find((element) => {
-                    return element.id == chat_room_id
+                let chat_room = this.current_user.chat_rooms.find((cr) => {
+                    return cr.id == data.chat_room_id
                 })
-                if (!chat_room.messages) { chat_room.messages = [] }
-                chat_room.messages.push(data)
+                if (this.messages[chat_room.name] == undefined) { 
+                    this.$set(this.messages, chat_room.name, [])
+                }
+                this.messages[chat_room.name].push(data)
             }
         },
-        /*new_message (message) {
-            this.messages.push(message)
-            var container = this.$el.querySelector('#messages-box')
-            container.scrollTop = container.scrollHeight
-        },*/
     }
 }
 </script>
@@ -366,13 +381,11 @@ export default {
 
     #rooms-list {
         list-style-type: none;
-        margin-top: 50px;
         padding: 0;
         text-align: center;
     }
 
     #rooms-list li {
-        display: inline;
         padding: 5px 50px;
     }
 
@@ -385,9 +398,15 @@ export default {
         padding: 10px;
     }
 
-    #users-list {
+    #right-pane {
         background-color: $info-window-color;
         color: white;
         width: 300px;
+        padding: 1em
+    }
+
+    #nickname-options {
+        text-align: center;
+        margin-bottom: 25px;
     }
 </style>

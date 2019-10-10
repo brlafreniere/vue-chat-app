@@ -15,7 +15,8 @@ class ChatRoomController < ApplicationController
   def join
     user = User.find_by(client_token: params[:client_token])
     if ChatRoom.exists?(name: params[:name])
-      ChatRoom.find_by(name: params[:name]).users << user
+      chat_room = ChatRoom.find_by(name: params[:name])
+      chat_room.users << user unless chat_room.users.include?(user)
     else
       chat_room = ChatRoom.new
       chat_room.name = params[:name]

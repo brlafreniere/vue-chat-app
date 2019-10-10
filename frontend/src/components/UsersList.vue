@@ -69,10 +69,6 @@ export default {
     margin-left: 1em;
 }
 
-#users-list {
-    padding: 1em;
-}
-
 section {
     margin-bottom: 50px;
 }
