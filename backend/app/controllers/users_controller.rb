@@ -8,8 +8,9 @@ class UsersController < ApplicationController
       @user = User.new
       @user.client_token = params[:client_token]
       @user.chat_rooms << ChatRoom.default_room
-      @user.save
     end
+    @user.online = true
+    @user.save
     render :json => @user, :include => :chat_rooms
   end
 
