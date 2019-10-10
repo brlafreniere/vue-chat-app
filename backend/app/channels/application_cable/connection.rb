@@ -12,8 +12,10 @@ module ApplicationCable
     end
 
     def disconnect
-      self.current_user.online = false
-      self.current_user.save
+      if self.current_user
+        self.current_user.online = false
+        self.current_user.save
+      end
     end
   end
 end
