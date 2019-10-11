@@ -10,72 +10,74 @@
             placeholder="Room Name"
             confirm-button-text="Join"
             @inputEntered="joinRoom" />
-        <div id="info-window">
-            <div id="room-panel">
-                <div id="room-options">
-                    <button
-                        @click='prompts.joinRoom = true'
-                        class='btn btn-primary btn-sm'>Join Room</button>
-                </div>
-                <ul id="rooms-list">
-                    <li
-                        v-for="chat_room in current_user.chat_rooms"
-                        class="room"
-                        :class="{ active: current_room.id == chat_room.id }"
-                        :key="chat_room.id">
-                        <a
-                            class='chat-room-link'
-                            href="#"
-                            :id="chat_room.id"
-                            @click="newRoomSelected">{{ chat_room.name }}</a>
-                    </li>
-                </ul>
+        <div id="top-bar">
+            <div id='current-room'>
+                <svg class="lnr lnr-earth"><use xlink:href="#lnr-earth"></use></svg> <span id='current-room-text'> {{ current_room.name }}</span>
             </div>
-            <div id="user-panel">
-                <div id="login-logout">
-                    <button @click="show_login_prompt">Login</button>
-                </div>
+            <div id="current-nick">
+                <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
+                <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
+                <span id='current-nick-text'>
+                    {{ current_user.nickname }}
+                </span>
             </div>
         </div>
-        <div id="chat-window">
-            <div id="top-bar">
-                <div id='current-room'>
-                    <svg class="lnr lnr-earth"><use xlink:href="#lnr-earth"></use></svg> <span id='current-room-text'> {{ current_room.name }}</span>
+        <div id="chat-app-body">
+            <div id="left-pane">
+                <div id="room-panel">
+                    <div id="room-options">
+                        <button
+                            @click='prompts.joinRoom = true'
+                            class='btn btn-primary btn-sm'>Join Room</button>
+                    </div>
+                    <ul id="rooms-list">
+                        <li
+                            v-for="chat_room in current_user.chat_rooms"
+                            class="room"
+                            :class="{ active: current_room.id == chat_room.id }"
+                            :key="chat_room.id">
+                            <a
+                                class='chat-room-link'
+                                href="#"
+                                :id="chat_room.id"
+                                @click="newRoomSelected">{{ chat_room.name }}</a>
+                        </li>
+                    </ul>
                 </div>
-                <div id="current-nick">
-                    <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
-                    <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
-                    <span id='current-nick-text'>
-                        {{ current_user.nickname }}
-                    </span>
-                </div>
-            </div>
-            <div id="messages-container">
-                <div id="messages-box">
-                    <div v-for="message in messages[current_room.name]" :key="message.id" class="message">
-                        {{ message.nickname }}: {{ message.text }} <span class="message-timestamp">{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A (MMM D, YYYY)") }}</span>
+                <div id="user-panel">
+                    <div id="login-logout">
+                        <button @click="show_login_prompt">Login</button>
                     </div>
                 </div>
-                <div id="right-pane">
-                    <div id="nickname-options">
-                        <button 
-                            class="btn btn-primary btn-sm"
-                            @click="prompts.nickname = true">
-                            Change Nickname
-                        </button>
+            </div>
+            <div id="chat-window">
+                <div id="messages-container">
+                    <div id="messages-box">
+                        <div v-for="message in messages[current_room.name]" :key="message.id" class="message">
+                            {{ message.nickname }}: {{ message.text }} <span class="message-timestamp">{{ message.created_at | moment('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, "h:mm A (MMM D, YYYY)") }}</span>
+                        </div>
                     </div>
-                    <UsersList 
-                        v-if="users_list_ready"
-                        :current-room="current_room" />
+                </div>
+                <div id="input-container">
+                    <form autocomplete="off" v-on:submit.prevent>
+                        <input
+                            id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
+                            autocomplete="off" @keyup.enter="send_message()"
+                        >
+                    </form>
                 </div>
             </div>
-            <div id="input-container">
-                <form autocomplete="off" v-on:submit.prevent>
-                    <input
-                        id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
-                        autocomplete="off" @keyup.enter="send_message()"
-                    >
-                </form>
+            <div id="right-pane">
+                <div id="nickname-options">
+                    <button 
+                        class="btn btn-primary btn-sm"
+                        @click="prompts.nickname = true">
+                        Change Nickname
+                    </button>
+                </div>
+                <UsersList 
+                    v-if="users_list_ready"
+                    :current-room="current_room" />
             </div>
         </div>
     </div>
@@ -237,7 +239,7 @@ export default {
     $messages-window-color: #e8f9ff;
     $messages-window-text-color: black;
 
-    $info-window-color: #333333;
+    $left-pane-color: #333333;
     $user-panel-color: #349b52;
     $current-nick-color: #4f4f4f;
     $input-container-color: $current-nick-color;
@@ -278,13 +280,19 @@ export default {
     #chat-app-container {
         height: 100%;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
     }
 
-    #info-window {
+    #chat-app-body {
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+    }
+
+    #left-pane {
         color: white;
         width: 300px;
-        background-color: $info-window-color;
+        background-color: $left-pane-color;
         display: flex;
         justify-content: space-between;
         flex-direction: column;
@@ -380,7 +388,7 @@ export default {
         color: white;
         width: auto;
         background-color: #445d66;
-        padding: $standard-padding-amount;
+        padding: $standard-padding-amount 50px;
     }
 
     #current-room-text {
@@ -407,7 +415,7 @@ export default {
     }
 
     #right-pane {
-        background-color: $info-window-color;
+        background-color: $left-pane-color;
         color: white;
         width: 300px;
         padding: 1em
