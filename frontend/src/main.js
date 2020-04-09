@@ -6,6 +6,9 @@ import VueMoment from 'vue-moment'
 import VuejsDialog from 'vuejs-dialog'
 import ActionCableVue from 'actioncable-vue'
 
+import Octicon from 'vue-octicon/components/Octicon.vue'
+import 'vue-octicon/icons'
+
 import axios from 'axios'
 import moment from 'moment-timezone'
 

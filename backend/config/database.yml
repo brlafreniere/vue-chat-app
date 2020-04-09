@@ -12,15 +12,17 @@ default: &default
 development:
   <<: *default
   database: vue_chat_app_dev
-  username: vue_chat_app_dev
-  password: vue_chat_app_dev
+  username: postgres
+  password: postgres
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: db/test.sqlite3
+  database: vue_chat_app_test
+  username: postgres
+  password: postgres
 
 production:
   <<: *default

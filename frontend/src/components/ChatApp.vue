@@ -11,6 +11,9 @@
             confirm-button-text="Join"
             @inputEntered="joinRoom" />
         <div id="top-bar">
+			<div id='menu'>
+				<octicon name="three-bars"></octicon>
+			</div>
             <div id='current-room'>
                 <svg class="lnr lnr-earth"><use xlink:href="#lnr-earth"></use></svg> <span id='current-room-text'> {{ current_room.name }}</span>
             </div>
@@ -90,8 +93,11 @@ import UsersList from './UsersList'
 import NicknamePrompt from './NicknamePrompt.vue'
 import InputPrompt from './InputPrompt.vue'
 
+const { Octicon, Octicons } = require('octicons-vue')
+
 export default {
     components: {
+		Octicon,
         UsersList,
         NicknamePrompt,
         InputPrompt
@@ -236,8 +242,8 @@ export default {
 
     $standard-padding-amount: 1em;
 
-    $messages-window-color: #e8f9ff;
-    $messages-window-text-color: black;
+    $messages-window-color: #1f1f1f;
+    $messages-window-text-color: white;
 
     $left-pane-color: #333333;
     $user-panel-color: #349b52;
@@ -245,6 +251,12 @@ export default {
     $input-container-color: $current-nick-color;
     $message-timestamp-color: black;
     $current-room-color: #4872b5;
+
+    $active-selection-color: #c2c1e8;
+    $top-bar-color: #32314f;
+
+    $btn-primary-color: #ad2651;
+    $btn-border-color: #ad2651;
 
     @mixin button-base() {
         background-color: #306ed3;
@@ -387,8 +399,8 @@ export default {
         justify-content: space-between;
         color: white;
         width: auto;
-        background-color: #445d66;
-        padding: $standard-padding-amount 50px;
+        background-color: $top-bar-color;
+	padding: $standard-padding-amount 50px;
     }
 
     #current-room-text {
@@ -407,6 +419,7 @@ export default {
 
     #rooms-list li.active {
         background-color: #662db5;
+	background-color: $active-selection-color;
     }
 
     #room-options {
@@ -436,5 +449,10 @@ export default {
 
     .chat-room-link:hover {
         text-decoration: none;
+    }
+
+    .btn-primary {
+	background-color: $btn-primary-color;
+	border-color: $btn-border-color;
     }
 </style>
