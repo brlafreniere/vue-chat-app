@@ -152,7 +152,7 @@ export default {
 
             if (!this.client_token) {
                 this.client_token = this.generate_client_token()
-                this.$cookies.set('client_token', this.client_token)
+                this.$cookies.set('client_token', this.client_token, undefined, undefined, process.env.VUE_APP_COOKIE_DOMAIN)
             }
         },
         newRoomSelected(event) {
