@@ -14,6 +14,9 @@ export default {
     components: {
         ChatApp,
         LoginPrompt,
+    },
+    mounted() {
+        this.$cookies.config(undefined, undefined, process.env.VUE_APP_COOKIE_DOMAIN)
     }
 }
 </script>
