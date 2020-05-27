@@ -93,11 +93,11 @@ import UsersList from './UsersList'
 import NicknamePrompt from './NicknamePrompt.vue'
 import InputPrompt from './InputPrompt.vue'
 
-const { Octicon, Octicons } = require('octicons-vue')
+// const { Octicon, Octicons } = require('octicons-vue')
 
 export default {
     components: {
-		Octicon,
+		// Octicon,
         UsersList,
         NicknamePrompt,
         InputPrompt
