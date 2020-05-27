@@ -27,5 +27,5 @@ test:
 production:
   <<: *default
   database: vue_chat_app
-  username: vue_chat_app
-  password: vue_chat_app
+  username: postgres
+  password: postgres
