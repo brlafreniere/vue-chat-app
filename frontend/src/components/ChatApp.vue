@@ -344,7 +344,6 @@ export default {
         flex-grow: 1;
         display: flex;
         flex-direction: row;
-        overflow-y: scroll;
     }
 
     #messages-box {
