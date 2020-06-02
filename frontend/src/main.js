@@ -5,6 +5,7 @@ import VueCookies from 'vue-cookies'
 import VueMoment from 'vue-moment'
 import VuejsDialog from 'vuejs-dialog'
 import ActionCableVue from 'actioncable-vue'
+import AsyncComputed from 'vue-async-computed';
 
 // import Octicon from 'vue-octicon/components/Octicon.vue'
 import 'vue-octicon/icons'
@@ -18,6 +19,7 @@ import App from './App.vue'
 import store from './store'
 import router from './router'
 
+Vue.use(AsyncComputed);
 Vue.use(VueAxios, axios)
 Vue.use(VuejsDialog)
 Vue.use(VueCookies)
@@ -31,6 +33,8 @@ Vue.use(ActionCableVue, {
     connectionUrl: connectionUrl,
     connectImmediately: true
 });
+
+Vue.prototype.$log = console.log
 
 new Vue({
     router,

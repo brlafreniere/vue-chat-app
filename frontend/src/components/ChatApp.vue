@@ -1,52 +1,7 @@
 <template>
     <div id="chat-app-container" class="container-fluid">
-        <NicknamePrompt
-            @updateNickname="updateNickname"
-            :showPrompt="prompts.nickname"
-            @closeNicknamePrompt="prompts.nickname = false" />
-        <InputPrompt
-            :showPrompt="prompts.joinRoom"
-            @closePrompt="prompts.joinRoom = false"
-            placeholder="Room Name"
-            confirm-button-text="Join"
-            @inputEntered="joinRoom" />
-        <div id="top-bar">
-			<div id='menu'>
-				<octicon name="three-bars"></octicon>
-			</div>
-            <div id='current-room'>
-                <svg class="lnr lnr-earth"><use xlink:href="#lnr-earth"></use></svg> <span id='current-room-text'> {{ current_room.name }}</span>
-            </div>
-            <div id="current-nick">
-                <svg v-show="current_user.registered" class="lnr lnr-warning" title="Your nickname is unregistered!"><use xlink:href="#lnr-warning"></use></svg>
-                <svg class="lnr lnr-user"><use xlink:href="#lnr-user"></use></svg>
-                <span id='current-nick-text'>
-                    {{ current_user.nickname }}
-                </span>
-            </div>
-        </div>
         <div id="chat-app-body">
             <div id="left-pane">
-                <div id="room-panel">
-                    <div id="room-options">
-                        <button
-                            @click='prompts.joinRoom = true'
-                            class='btn btn-primary btn-sm'>Join Room</button>
-                    </div>
-                    <ul id="rooms-list">
-                        <li
-                            v-for="chat_room in current_user.chat_rooms"
-                            class="room"
-                            :class="{ active: current_room.id == chat_room.id }"
-                            :key="chat_room.id">
-                            <a
-                                class='chat-room-link'
-                                href="#"
-                                :id="chat_room.id"
-                                @click="newRoomSelected">{{ chat_room.name }}</a>
-                        </li>
-                    </ul>
-                </div>
                 <div id="user-panel">
                     <div id="login-logout">
                         <button @click="show_login_prompt">Login</button>
@@ -64,7 +19,9 @@
                 <div id="input-container">
                     <form autocomplete="off" v-on:submit.prevent>
                         <input
-                            id="new-message-input" v-model="message_input" name="new-message-input" type="text" placeholder="type message here..."
+                            id="new-message-input" v-model="message_input"
+                            name="new-message-input" type="text"
+                            placeholder="type message here..."
                             autocomplete="off" @keyup.enter="send_message()"
                         >
                     </form>
@@ -87,20 +44,11 @@
 </template>
 
 <script>
-import sha1 from 'sha1'
-
 import UsersList from './UsersList'
-import NicknamePrompt from './NicknamePrompt.vue'
-import InputPrompt from './InputPrompt.vue'
-
-// const { Octicon, Octicons } = require('octicons-vue')
 
 export default {
     components: {
-		// Octicon,
-        UsersList,
-        NicknamePrompt,
-        InputPrompt
+        UsersList
     },
     data () {
         return {
@@ -116,45 +64,12 @@ export default {
             users_list_ready: false,
         }
     },
-    updated: function () {
-        this.$nextTick(function () {
-            var container = this.$el.querySelector('#messages-box')
-            container.scrollTop = container.scrollHeight
-        })
-    },
     async mounted () {
-        this.loadClientToken()
-        await this.loadUserObject()
         this.setCurrentRoom(this.current_user.chat_rooms[0])
         this.subscribeToChatRoomChannels()
         this.loadRoomMessages()
     },
     methods: {
-        async loadRoomMessages () {
-            let url = `${process.env.VUE_APP_API_URL}/chat_room/${this.current_room.id}/messages/`
-            let response = await this.axios.get(url)
-            if (this.messages[this.current_room.name] == undefined) { 
-                this.$set(this.messages, this.current_room.name, [])
-            }
-            response.data.forEach((el) => this.messages[this.current_room.name].push(el))
-        },
-        async getUserObject() {
-            let url = `${process.env.VUE_APP_API_URL}/user/${this.client_token}`
-            let response = await this.axios.get(url)
-            return response.data;
-        },
-        async loadUserObject() {
-            this.current_user = await this.getUserObject()
-        },
-        loadClientToken () {
-            // check for client token
-            this.client_token = this.$cookies.get('client_token')
-
-            if (!this.client_token) {
-                this.client_token = this.generate_client_token()
-                this.$cookies.set('client_token', this.client_token, undefined, undefined, process.env.VUE_APP_COOKIE_DOMAIN)
-            }
-        },
         newRoomSelected(event) {
             let chat_room_id = event.target.id
             this.changeRoom(chat_room_id)
@@ -171,64 +86,10 @@ export default {
         setCurrentRoom(room) {
             this.current_room = room
         },
-        subscribeToChatRoomChannels() {
-            // general user channel/chat related channel for setup, meta related stuff
-            this.current_user.chat_rooms.forEach( (chat_room) => {
-                this.subscribeToChatRoomChannel(chat_room)
-            })
-        },
-        subscribeToChatRoomChannel(chat_room) {
-            this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
-        },
-        async joinRoom (roomName) {
-            await this.axios.post(`${process.env.VUE_APP_API_URL}/chat_room/join`, {name: roomName, client_token: this.client_token})
-            await this.loadUserObject()
-            let chat_room = this.current_user.chat_rooms.find((el) => {
-                return el.name == roomName
-            })
-            this.subscribeToChatRoomChannel(chat_room)
-        },
-        updateNickname (new_nickname) {
-            this.current_user.nickname = new_nickname
-        },
         show_login_prompt () {
             this.$store.commit('open_login_prompt')
         },
-        generate_client_token () {
-            var clientStr = sha1(Math.floor(Date.now() / 1000))
-            return clientStr
-        },
-        send_message () {
-            this.$cable.perform({
-                channel: "ChatRoomChannel",
-                action: "new_message",
-                data: {
-                    message_text: this.message_input,
-                    chat_room_id: this.current_room.id
-                }
-            })
-            this.message_input = ""
-        },
-        register_nickname_with_server(new_nickname, next) {
-            this.$socket.emit('update_nickname', this.client_token, new_nickname, next)
-        }
     },
-    channels: {
-        ChatRoomChannel: {
-            connected() {
-                this.users_list_ready = true
-            },
-            received(data) {
-                let chat_room = this.current_user.chat_rooms.find((cr) => {
-                    return cr.id == data.chat_room_id
-                })
-                if (this.messages[chat_room.name] == undefined) { 
-                    this.$set(this.messages, chat_room.name, [])
-                }
-                this.messages[chat_room.name].push(data)
-            }
-        },
-    }
 }
 </script>
 
@@ -245,7 +106,6 @@ export default {
     $messages-window-color: #1f1f1f;
     $messages-window-text-color: white;
 
-    $left-pane-color: #333333;
     $user-panel-color: #349b52;
     $current-nick-color: #4f4f4f;
     $input-container-color: $current-nick-color;
@@ -253,7 +113,6 @@ export default {
     $current-room-color: #4872b5;
 
     $active-selection-color: #c2c1e8;
-    $top-bar-color: #32314f;
 
     $btn-primary-color: #ad2651;
     $btn-border-color: #ad2651;
@@ -284,39 +143,8 @@ export default {
     .lnr-pencil {
         color: white;
     }
-
-    .container-fluid {
-        padding: 0;
-    }
-
-    #chat-app-container {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    #chat-app-body {
-        display: flex;
-        flex-direction: row;
-        height: 100%;
-    }
-
-    #left-pane {
-        color: white;
-        width: 300px;
-        background-color: $left-pane-color;
-        display: flex;
-        justify-content: space-between;
-        flex-direction: column;
-        height: 100%;
-    }
-
     #user-panel {
         padding: $standard-padding-amount;
-    }
-
-    #room-panel {
-
     }
 
     #login-logout {
@@ -331,13 +159,6 @@ export default {
 
     #current-nick-text {
         font-size: 1.3em
-    }
-
-    #chat-window {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%;
     }
 
     #messages-container {
@@ -392,20 +213,6 @@ export default {
         visibility: visible;
     }
 
-    #top-bar {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        color: white;
-        width: auto;
-        background-color: $top-bar-color;
-	padding: $standard-padding-amount 50px;
-    }
-
-    #current-room-text {
-        font-size: 1.3em
-    }
-
     #rooms-list {
         list-style-type: none;
         padding: 0;
@@ -426,13 +233,6 @@ export default {
         padding: 10px;
     }
 
-    #right-pane {
-        background-color: $left-pane-color;
-        color: white;
-        width: 300px;
-        padding: 1em
-    }
-
     #nickname-options {
         text-align: center;
         margin-bottom: 25px;
@@ -451,7 +251,7 @@ export default {
     }
 
     .btn-primary {
-	background-color: $btn-primary-color;
-	border-color: $btn-border-color;
+        background-color: $btn-primary-color;
+        border-color: $btn-border-color;
     }
 </style>

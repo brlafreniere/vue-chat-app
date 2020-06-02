@@ -15,4 +15,16 @@ class User < ApplicationRecord
     end
     chat_room.users << self unless chat_room.users.include?(self)
   end
+
+  def self.find_or_create_by_client_token client_token
+    @user = self.find_by(client_token: client_token)
+    if not @user
+      @user = self.new
+      @user.client_token = client_token
+      @user.chat_rooms << ChatRoom.default_room
+    end
+    @user.online = true
+    @user.save
+    return @user
+  end
 end

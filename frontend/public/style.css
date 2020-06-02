@@ -6,3 +6,13 @@ html, body, #app {
     font-family: 'Open Sans', sans-serif;
 }
 
+.panel-section {
+    background-color: #3D3657;
+}
+.panel-body {
+    padding: 1em;
+}
+.panel-header {
+    padding: 1em;
+    background-color: black;
+}

@@ -1,6 +1,11 @@
-class ChatRoomController < ApplicationController
-  before_action :set_chat_room, only: [:show, :edit, :update, :destroy]
+class ChatRoomsController < ApplicationController
+  # before_action :set_chat_room, only: [:show, :edit, :update, :destroy]
   skip_before_action :verify_authenticity_token
+
+  def show
+    @chat_room = ChatRoom.find(params[:id])
+    render json: @chat_room.to_json
+  end
 
   def messages
     @messages = Message.where(chat_room_id: params[:id])
