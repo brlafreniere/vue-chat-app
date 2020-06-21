@@ -19,7 +19,8 @@
         data() {
             return {
                 messages: {},
-                message_input: ""
+                message_input: "",
+                subscribed: false
             }
         },
         updated: function () {
@@ -29,17 +30,20 @@
         },
         mounted() {
             EventBus.$on('current_user_set', () => {
-                this.subscribe_to_chat_room_channels()
+                if (!this.subscribed) {
+                    this.subscribe_to_chat_room_channels()
+                    this.subscribed = true // make sure we only do this once...
+                }
             })
             EventBus.$on('current_room_set', () => {
-                this.getMessages();
+                this.get_messages();
             })
             this.$nextTick( () => {
                 this.scroll_to_bottom();
             })
         },
         methods: {
-            async getMessages() {
+            async get_messages() {
                 // if messages not previously loaded... load 'em up
                 if (this.messages[this.current_room.id] === undefined) { 
                     let url = `${process.env.VUE_APP_API_URL}/chat_room/${this.current_room.id}/messages/`
@@ -52,8 +56,7 @@
                 const el = this.$el.querySelector('#chat-messages-container')
                 el.scrollTop = el.scrollHeight
             },
-            subscribe_to_chat_room_channels() {
-                // general user channel/chat related channel for setup, meta related stuff
+            async subscribe_to_chat_room_channels() {
                 this.current_user.chat_rooms.forEach( (chat_room) => {
                     this.$cable.subscribe({ channel: 'ChatRoomChannel', chat_room_id: chat_room.id })
                 })
@@ -79,10 +82,16 @@
                     let chat_room = this.current_user.chat_rooms.find((chat_room) => {
                         return chat_room.id == data.chat_room_id
                     })
+
                     if (this.messages[chat_room.id] === undefined) { 
                         this.$set(this.messages, chat_room.name, [])
                     }
-                    this.messages[chat_room.id].push(data)
+
+                    // For god knows why, we might receive the same message
+                    // twice.
+                    if (!this.messages[chat_room.id].find((msg) => msg.id === data.id)) {
+                        this.messages[chat_room.id].push(data)
+                    }
                 }
             },
         },
@@ -92,7 +101,7 @@
             },
             current_user() {
                 return this.$store.state.current_user
-            },
+            }
         }
     }
 </script>
