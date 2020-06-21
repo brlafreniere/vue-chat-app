@@ -103,6 +103,7 @@
         max-height: 100%;
     }
     #chat-messages-container {
+        height: 100%;
         overflow-y: scroll;
     }
     ul {
