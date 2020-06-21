@@ -1,7 +1,7 @@
 <template>
     <div class="mb-5">
         <div class="form-group">
-            <input v-model="new_nickname" type="text" placeholder="New Nickname" class="form-control" />
+            <input v-model="new_nickname" @keyup.enter="update_nickname_on_server" type="text" placeholder="New Nickname" class="form-control" />
         </div>
         <div class="form-group">
             <button class="btn btn-primary form-control" @click="update_nickname_on_server">Update Nickname</button>

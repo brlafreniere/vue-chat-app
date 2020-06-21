@@ -2,7 +2,7 @@
     <div class="input-prompt" v-show="show_prompt">
         <div class="input-body">
             <input v-model="input_data" ref="input" @keyup.enter="submitInput()"
-                class="prompt-input" type="text" :placeholder="placeholder" />
+                class="form-control mb-3" type="text" :placeholder="placeholder" />
             <div class='button-flex-row'>
                 <button @click="submitInput" class="btn btn-primary full-width submit">{{ confirm_button_text }}</button>
                 <button @click="$emit('close_prompt')" class="btn btn-secondary full-width" id="cancel">Cancel</button>
@@ -45,7 +45,7 @@
 <style lang="scss" scoped>
     .dark-overlay {
         position: absolute;
-        z-index: 0;
+        z-index: 100;
         height: 100%;
         width: 100%;
         top: 0;
@@ -55,14 +55,13 @@
     }
 
     .input-body {
-        z-index: 10;
+        z-index: 101;
         width: 500px;
-        margin-left: -250px;
-        margin-top: -150px;
-        background-color: #433b47;
+        background-color: white;
         position: absolute;
         top: 50%;
         left: 50%;
+        transform: translate(-50%, -50%);
         padding: 25px;
         border-radius: 0.25em;
     }

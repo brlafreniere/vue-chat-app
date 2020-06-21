@@ -11,7 +11,7 @@ class UsersController < ApplicationController
         end
         @user.online = true
         @user.save
-        render :json => @user, :include => :chat_rooms
+        render :json => @user, :include => { :chat_rooms => {:include => :users} }
     end
 
     def update_nickname
@@ -22,5 +22,21 @@ class UsersController < ApplicationController
         # @user.chat_rooms.each do |chat_room|
         #   ChatRoomChannel.broadcast_to(chat_room, {action: "update_nickname", old_nickname: old_nickname, new_nickname: @user.nickname})
         # end
+    end
+
+    def register_account
+        @user = User.find_or_create_by_client_token(params[:client_token])
+        if !@user.email
+            @user.email = params[:email]
+            @user.password = params[:password]
+            @user.password_confirmation = params[:password_confirmation]
+            if @user.save
+                render status: :ok
+            else
+                render status: :unprocessable_entity, json: @user.errors.to_json
+            end
+        else
+            render status: :unprocessable_entity
+        end
     end
 end

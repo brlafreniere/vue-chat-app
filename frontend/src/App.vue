@@ -4,12 +4,11 @@
             <NicknameDisplayAndOptions />
             <RoomList />
         </div>
-        <div id="middle-pane">
+        <div id="middle-pane" class="border-left border-right">
             <ChatMessages />
         </div>
         <div id="right-pane">
-            right pane
-            <!-- <UsersList /> -->
+            <UsersList />
         </div>
         <LoginPrompt />
     </div>
@@ -22,6 +21,7 @@
     import NicknameDisplayAndOptions from './components/NicknameDisplayAndOptions.vue'
     import RoomList from './components/RoomList.vue'
     import OverlayMenu from '@/components/OverlayMenu.vue'
+    import UsersList from "@/components/UsersList.vue"
 
     export default {
         name: 'App',
@@ -30,6 +30,7 @@
             ChatMessages,
             NicknameDisplayAndOptions,
             RoomList,
+            UsersList
         },
         async mounted() {
             this.load_client_token()
@@ -48,7 +49,7 @@
                 var clientStr = sha1(Math.floor(Date.now() / 1000))
                 return clientStr
             },
-            async joinRoom (roomName) {
+            async join_room (roomName) {
                 await this.axios.post(`${process.env.VUE_APP_API_URL}/chat_room/join`, {name: roomName, client_token: this.client_token})
                 await this.loadUserObject()
                 let chat_room = this.current_user.chat_rooms.find((el) => { return el.name == roomName })
@@ -59,26 +60,18 @@
 </script>
 
 <style lang="scss" scoped>
-    $left-pane-color: #333333;
-
-
     .full-width {
         width: 100%;
     }
 
     #right-pane {
-        background-color: $left-pane-color;
-        color: white;
         width: 300px;
         padding: 1em
     }
 
     #left-pane {
-        color: white;
         width: 300px;
-        background-color: $left-pane-color;
         display: flex;
-        //justify-content: space-between;
         flex-direction: column;
         height: 100%;
     }
@@ -100,8 +93,6 @@
     }
 
     #middle-pane {
-        color: #B8BBDC;
-        background-color: #242424;
         display: flex;
         flex-direction: column;
         height: 100%;

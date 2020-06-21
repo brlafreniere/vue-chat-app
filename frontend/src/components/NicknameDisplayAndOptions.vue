@@ -1,12 +1,10 @@
 <template>
-    <div id='user-settings'>
-        <div class="d-flex flex-row justify-content-between">
+    <div id='user-settings' class='border-bottom'>
+        <div class="text-center">
             <div>
-                <Octicon :icon="Octicons.person" /> {{current_user.nickname}}
-            </div>
-            <div>
+                <Octicon :icon="Octicons.person" /> 
                 <a href="#" @click="show_user_options_menu = true">
-                    <Octicon :icon="Octicons.gear"/>
+                    {{current_user.nickname}}
                 </a>
             </div>
         </div>
@@ -48,14 +46,12 @@
 
 <style lang="scss" scoped>
     #user-settings {
-        color: white;
-        background-color: #3D3657;
         padding: 1em;
+        color: black;
     }
     #user-settings a:link,
     #user-settings a:visited,
     #user-settings a:hover {
-        color: #9CF4B9;
         text-decoration: none;
     }
     .octicon {

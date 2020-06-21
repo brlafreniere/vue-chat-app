@@ -22,6 +22,21 @@
         computed: {
             user_registered() {
                 return Boolean(this.$store.state.current_user.email)
+            },
+            client_token() {
+                return this.$store.state.current_user.client_token
+            }
+        },
+        methods: {
+            submit_registration() {
+                let url = `${process.env.VUE_APP_API_URL}/user/register_account`
+                let payload = {
+                    client_token: this.client_token
+                }
+                this.axios.post(url, payload).then(response => {
+
+                })
+                this.$parent.$emit('close_overlay')
             }
         }
     }

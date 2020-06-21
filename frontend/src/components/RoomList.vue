@@ -1,31 +1,24 @@
 <template>
-    <div class="panel-section">
-        <div class='panel-header'>
-            Rooms
+    <div class='border-bottom p-3 text-center'>
+        <div id="room-options" class='mt-3 pb-1 border-bottom'>
+            <a href="#" @click="show_join_room_prompt = true">Join Room</a>
         </div>
-        <div class='panel-body'>
-            <ul id="rooms-list" v-if="current_room">
-                <li v-for="chat_room in current_user.chat_rooms" class="room" :class="{ active: current_room.id == chat_room.id }" :key="chat_room.id">
-                    <a 
-                        class='chat-room-link'
-                        href="#"
-                        :id="chat_room.id"
-                        @click="changecurrent_room"
-                    >
-                        {{ chat_room.name }}
-                    </a>
-                </li>
-            </ul>
-            <div id="room-options">
-                <button @click="show_join_room_prompt = true" class='btn btn-primary btn-sm'>Join Room</button>
-            </div>
-            <InputPrompt
-                :show_prompt="show_join_room_prompt"
-                confirm_button_text="Join"
-                @close_prompt="show_join_room_prompt = false"
-                @input_entered="joinRoom"
-            />
-        </div>
+        <nav class="nav nav-pills flex-column mt-3" v-if="current_room">
+            <a v-for="chat_room in current_user.chat_rooms" 
+            :class="{ active: current_room.id == chat_room.id }"
+            class="nav-link"
+            :key="chat_room.id"
+            href="#"
+            :id="chat_room.id"
+            @click="change_current_room"
+            > {{ chat_room.name }} </a>
+        </nav>
+        <InputPrompt
+            :show_prompt="show_join_room_prompt"
+            confirm_button_text="Join"
+            @close_prompt="show_join_room_prompt = false"
+            @input_entered="join_room"
+        />
     </div>
 </template>
 
@@ -52,7 +45,7 @@
             }
         },
         methods: {
-            joinRoom(roomName) {
+            join_room(roomName) {
                 let payload = {
                     client_token: this.current_user.client_token,
                     name: roomName
@@ -62,7 +55,7 @@
                     this.$store.dispatch('refresh_current_user')
                 })
             },
-            changecurrent_room(event) {
+            change_current_room(event) {
                 let room_id = event.target.id
                 let payload = { room_id }
                 this.$store.dispatch('set_room_by_id', payload)
@@ -76,7 +69,6 @@
         padding: 1em;
     }
     .panel-header {
-        background-color: black;
         padding: 1em;
     }
     #rooms-list {
@@ -85,6 +77,5 @@
         padding: 0;
     }
     #rooms-list .active {
-        background-color: orange;
     }
 </style>

@@ -59,7 +59,7 @@ export default {
             messages: {},
             prompts: {
                 nickname: false,
-                joinRoom: false,
+                join_room: false,
             },
             users_list_ready: false,
         }

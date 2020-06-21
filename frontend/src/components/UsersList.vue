@@ -1,18 +1,16 @@
-<!-- this component is mostly for rendering the users list -->
-
 <template>
-    <div id="users-list">
+    <div>
         <section>
-            <header>ONLINE USERS</header>
-            <ul>
+            <header class="border-bottom">Online</header>
+            <ul v-if="current_room" class="mb-5">
                 <li v-for="user in online_users" :key="user.nickname">
                     {{ user.nickname }}
                 </li>
             </ul>
         </section>
         <section>
-            <header>OFFLINE USERS</header>
-            <ul>
+            <header class="border-bottom">Offline</header>
+            <ul v-if="current_room">
                 <li v-for="user in offline_users" :key="user.nickname">
                     {{ user.nickname }}
                 </li>
@@ -22,61 +20,48 @@
 </template>
 
 <script>
-export default {
-    props: {
-        currentRoom: Object
-    },
-    data () {
-        return {
-            users: []
-        }
-    },
-    mounted () {
-        this.$nextTick( () => {
-            this.loadUsers()
-        })
-        window.setInterval( () => {
-            this.loadUsers()
-        }, 30000) // every 30 seconds
-    },
-    methods: {
-        async loadUsers() {
-            let url = `${process.env.VUE_APP_API_URL}/chat_room/${this.currentRoom.id}/users`
-            let response = await this.axios.get(url)
-            this.users = response.data
-        }
-    },
-    computed: {
-        online_users: function () {
-            return this.users.filter((user) => {
-                return user.online
-            })
+    export default {
+        mounted () {
+            window.setInterval( () => {
+                this.refresh_current_room()
+            }, 3000) // every 30 seconds
         },
-        offline_users: function () {
-            return this.users.filter((user) => {
-                return !user.online
-            })
+        methods: {
+            async refresh_current_room() {
+                let payload = {room_id: this.current_room.id}
+                this.$store.dispatch('set_room_by_id', payload)
+            }
+        },
+        computed: {
+            current_room() {
+                return this.$store.state.current_room
+            },
+            online_users: function () {
+                if (this.current_room.users) {
+                    return this.current_room.users.filter((user) => {
+                        return user.online
+                    })
+                } else {
+                    return null;
+                }
+            },
+            offline_users: function () {
+                if (this.current_room.users) {
+                    return this.current_room.users.filter((user) => {
+                        return !user.online
+                    })
+                } else {
+                    return null;
+                }
+            }
         }
     }
-}
 </script>
 
 <style scoped>
-#users-list ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    margin-left: 1em;
-}
-
-section {
-    margin-bottom: 50px;
-}
-
-header {
-    background-color: #5f367a;
-    padding: 5px;
-    text-align: center;
-    border-radius: 5px;
-}
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
 </style>

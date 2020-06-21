@@ -1,12 +1,14 @@
 <template>
-    <div id="messages-box">
-        <ul v-if="current_room">
-            <li v-for="message in messages[current_room.id]" :key="message.id">
-                {{ message.nickname }}: {{ message.text }}
-            </li>
-        </ul>
-        <div id='input-box'>
-            <input type="text" v-model="message_input" autocomplete="off" @keyup.enter="send_message()">
+    <div class="d-flex flex-column" id="component-container">
+        <div class="p-3" id="chat-messages-container">
+            <ul v-if="current_room">
+                <li v-for="message in messages[current_room.id]" :key="message.id">
+                    {{ message.nickname }}: {{ message.text }}
+                </li>
+            </ul>
+        </div>
+        <div class='border-top bg-light p-3'>
+            <input type="text" class="form-control" v-model="message_input" autocomplete="off" @keyup.enter="send_message()">
         </div>
     </diV>
 </template>
@@ -21,10 +23,9 @@
             }
         },
         updated: function () {
-            /* this.$nextTick(function () {
-                var container = this.$el.querySelector('#messages-box')
-                container.scrollTop = container.scrollHeight
-            })*/
+            this.$nextTick(function () {
+                this.scroll_to_bottom()
+            })
         },
         mounted() {
             EventBus.$on('current_user_set', () => {
@@ -32,6 +33,9 @@
             })
             EventBus.$on('current_room_set', () => {
                 this.getMessages();
+            })
+            this.$nextTick( () => {
+                this.scroll_to_bottom();
             })
         },
         methods: {
@@ -43,6 +47,10 @@
                     this.$set(this.messages, this.current_room.id, [])
                     response.data.forEach((el) => this.messages[this.current_room.id].push(el))
                 }
+            },
+            scroll_to_bottom() {
+                const el = this.$el.querySelector('#chat-messages-container')
+                el.scrollTop = el.scrollHeight
             },
             subscribe_to_chat_room_channels() {
                 // general user channel/chat related channel for setup, meta related stuff
@@ -90,29 +98,16 @@
 </script>
 
 <style lang="scss" scoped>
+    #component-container {
+        height: 100%;
+        max-height: 100%;
+    }
+    #chat-messages-container {
+        overflow-y: scroll;
+    }
     ul {
         list-style-type: none;
         margin: 0;
         padding: 0;
-    }
-
-    #messages-box {
-        height: 100%;
-        width: 100%;
-        padding: 1em;
-        position: relative;
-    }
-
-    #input-box {
-        background-color: #253745;
-        width: 100%;
-        padding: 1em;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-    }
-
-    #input-box input {
-        width: 100%;
     }
 </style>
