@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "actioncable-vue": "^1.3.0",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "core-js": "^2.6.5",
     "moment-timezone": "^0.5.25",
     "node-sass": "4.12.0",
